@@ -338,6 +338,22 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
   #rosterPanel .memberStatus{font-size:9px;padding:2px 5px;}
 }
 
+
+.subTeamsFlat{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+  min-width:0!important;
+}
+@media(max-width:1000px){
+  .subTeamsFlat{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
+@media(max-width:700px){
+  .subTeamsFlat{
+    min-width:760px!important;
+    grid-template-columns:repeat(3,240px)!important;
+  }
+}
 @media(max-width:700px){
   header{padding:10px 12px;}
   header h2{font-size:18px;}
@@ -666,7 +682,7 @@ async function syncRosterFromSheet(showMessage=false){
 }
 
 function reconcileSubRoster(){
-  // MAIN is fixed at 12 x 5. Everyone else belongs in SUB.
+  // MAIN stays fixed at 12 x 5.
   if(!Array.isArray(data.main)) data.main = [];
   while(data.main.length < 12) data.main.push(Array(5).fill(null));
   data.main = data.main.slice(0,12).map(team => Array.from({length:5},(_,i) => team?.[i] ?? null));
@@ -676,7 +692,7 @@ function reconcileSubRoster(){
   const subEligible = data.members.filter(m => !mainIds.has(m.id));
   const eligibleIds = new Set(subEligible.map(m => m.id));
 
-  // Keep existing SUB positions when possible, remove invalid/Main/duplicate entries.
+  // Keep only valid non-Main members already placed in SUB, remove duplicates.
   const seen = new Set();
   const kept = [];
   (Array.isArray(data.sub) ? data.sub : []).forEach(team => {
@@ -691,21 +707,11 @@ function reconcileSubRoster(){
     kept.push(clean);
   });
 
-  // Every member not in MAIN is automatically placed into SUB.
-  const missing = subEligible.filter(m => !seen.has(m.id)).sort((a,b) => b.gr - a.gr);
-  for(const m of missing){
-    let placed = false;
-    for(const team of kept){
-      const slot = team.indexOf(null);
-      if(slot !== -1){ team[slot] = m.id; placed = true; break; }
-    }
-    if(!placed) kept.push([m.id,null,null,null,null]);
-  }
-
+  // SUB must have enough EMPTY capacity for everyone outside Main,
+  // but members are NOT auto-assigned. Officers can build teams manually.
   const needed = Math.max(1, Math.ceil(subEligible.length / 5));
-  // Trim only completely empty teams beyond what's needed.
-  while(kept.length > needed && kept[kept.length-1].every(x => !x)) kept.pop();
   while(kept.length < needed) kept.push(Array(5).fill(null));
+  while(kept.length > needed && kept[kept.length-1].every(x => !x)) kept.pop();
   data.sub = kept;
 }
 
@@ -862,28 +868,28 @@ return new Set([
 }
 
 function teamLocation(teamIndex, fieldName="main"){
-  const total = fieldName === "sub" ? data.sub.length : 12;
+  if(fieldName === "sub") return { lane: "SUB", number: teamIndex + 1 };
   if(teamIndex <= 2) return { lane: "TOP", number: teamIndex + 1 };
-  if(teamIndex >= total - 3) return { lane: "BOTTOM", number: teamIndex - (total - 3) + 1 };
+  if(teamIndex >= 9) return { lane: "BOTTOM", number: teamIndex - 8 };
   return { lane: "MID", number: teamIndex - 2 };
 }
 
 function memberStatus(id){
   for(let t = 0; t < data.main.length; t++){
     if(data.main[t].includes(id)){
-      const loc = teamLocation(t);
+      const loc = teamLocation(t, "main");
       return `MAIN • ${loc.lane} T${loc.number}`;
     }
   }
 
   for(let t = 0; t < data.sub.length; t++){
     if(data.sub[t].includes(id)){
-      const loc = teamLocation(t, "sub");
-      return `SUB • ${loc.lane} T${loc.number}`;
+      return `SUB • T${t + 1}`;
     }
   }
 
-  return "UNASSIGNED";
+  // Anyone not in Main is still eligible for Sub, but not yet placed in a Sub team.
+  return "SUB POOL";
 }
 
 function setMemberViewFilter(mode){
@@ -950,29 +956,20 @@ function renderMembers(){
 function renderTeams(){
   let field = data[current];
 
-  const totalTeams = field.length;
-  const topTeams = Array.from({length: Math.min(3,totalTeams)}, (_,i) => i);
-  const bottomStart = Math.max(3, totalTeams - 3);
-  const midTeams = Array.from({length: Math.max(0,bottomStart - 3)}, (_,i) => i + 3);
-  const bottomTeams = Array.from({length: Math.max(0,totalTeams - bottomStart)}, (_,i) => i + bottomStart);
-  const laneConfig = [
-    { name: "TOP", cls: "top", teams: topTeams },
-    { name: "MID", cls: "mid", teams: midTeams },
-    { name: "BOTTOM", cls: "bottom", teams: bottomTeams }
-  ].filter(lane => lane.teams.length);
-
-  function teamCard(teamIndex, laneTeamNumber, laneName){
+  function teamCard(teamIndex, displayNumber, laneName=""){
     const team = field[teamIndex];
     const teamMembers = team.map(id => data.members.find(m => m.id === id)).filter(Boolean);
     const filled = teamMembers.length;
     const hasHealer = teamMembers.some(m => m.cls === "High Priest");
     const missingHealer = filled > 0 && !hasHealer;
-    const teamLabel = `${current.toUpperCase()} • ${laneName} T${laneTeamNumber}`;
+    const teamLabel = current === "main"
+      ? `${current.toUpperCase()} • ${laneName} T${displayNumber}`
+      : `SUB • T${displayNumber}`;
 
     return `
       <div class="team ${missingHealer ? 'healerMissing' : ''}">
         <div class="teamHeader">
-          <b title="${teamLabel}">Team ${laneTeamNumber}${missingHealer ? '<span class="healerBadge">⚠ NO HEALER</span>' : ''}</b>
+          <b title="${teamLabel}">Team ${displayNumber}${missingHealer ? '<span class="healerBadge">⚠ NO HEALER</span>' : ''}</b>
           <span>${filled}/5</span>
         </div>
         ${team.map((id,si)=>{
@@ -992,6 +989,19 @@ function renderTeams(){
       </div>
     `;
   }
+
+  if(current === "sub"){
+    teams.classList.add("subTeamsFlat");
+    teams.innerHTML = field.map((_,i) => teamCard(i, i + 1)).join("");
+    return;
+  }
+
+  teams.classList.remove("subTeamsFlat");
+  const laneConfig = [
+    { name: "TOP", cls: "top", teams: [0,1,2] },
+    { name: "MID", cls: "mid", teams: [3,4,5,6,7,8] },
+    { name: "BOTTOM", cls: "bottom", teams: [9,10,11] }
+  ];
 
   teams.innerHTML = laneConfig.map(lane => `
     <section class="lane ${lane.cls}">
@@ -1109,34 +1119,50 @@ current=tab;
 mainBtn.classList.toggle("active",tab==="main");
 subBtn.classList.toggle("active",tab==="sub");
 const clearBtn = document.getElementById("clearCurrentBtn");
-if(clearBtn) clearBtn.textContent = tab === "main" ? "Clear Main" : "Reset Sub Layout";
+if(clearBtn) clearBtn.textContent = tab === "main" ? "Clear Main" : "Clear Sub";
 render();
 }
 
 function clearCurrent(){
   if(current === "main"){
-    if(!confirm("Clear all 60 Main Battlefield slots? Everyone removed from Main will automatically return to Sub.")) return;
+    if(!confirm("Clear all 60 Main Battlefield slots?")) return;
     data.main = Array.from({length:12},()=>Array(5).fill(null));
     selected = null;
+    reconcileSubRoster();
     save();
     return;
   }
 
-  // Everyone outside MAIN must remain in SUB, so SUB cannot be truly empty.
-  // Resetting SUB means discard the current grouping and rebuild all Sub teams.
-  if(!confirm("Reset the Sub team arrangement? All members outside Main will stay in Sub, but the Sub teams will be rebuilt.")) return;
-  data.sub = [];
+  if(!confirm("Clear ALL Sub team slots? The Sub teams will stay available, but every member will return to the Sub Pool so you can rebuild from scratch.")) return;
+  const validIds = new Set(data.members.map(m => m.id));
+  const mainIds = new Set(data.main.flat().filter(id => id && validIds.has(id)));
+  const subEligibleCount = data.members.filter(m => !mainIds.has(m.id)).length;
+  const needed = Math.max(1, Math.ceil(subEligibleCount / 5));
+  data.sub = Array.from({length:needed},()=>Array(5).fill(null));
   selected = null;
-  reconcileSubRoster();
   save();
 }
 
 function autoFillCurrent(){
   if(!confirm(`Auto-fill empty slots in ${current === "main" ? "Main" : "Sub"} Battlefield? Existing assignments will stay.`)) return;
 
-  // SUB is automatic: everyone not in MAIN belongs there.
+  // SUB auto-fill: place everyone outside Main into Sub teams, highest GR first.
   if(current === "sub") {
     reconcileSubRoster();
+    const usedSub = new Set(data.sub.flat().filter(Boolean));
+    const mainIds = new Set(data.main.flat().filter(Boolean));
+    const availableSub = data.members
+      .filter(m => !mainIds.has(m.id) && !usedSub.has(m.id))
+      .sort((a,b) => b.gr - a.gr);
+
+    for(const m of availableSub){
+      let placed = false;
+      for(const team of data.sub){
+        const slot = team.indexOf(null);
+        if(slot !== -1){ team[slot] = m.id; placed = true; break; }
+      }
+      if(!placed) data.sub.push([m.id,null,null,null,null]);
+    }
     save();
     return;
   }
