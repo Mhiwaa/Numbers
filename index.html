@@ -161,6 +161,54 @@ button:hover{background:#243247;}
 .statusSub{background:#4a3275;color:#d2b6ff;}
 .statusNone{background:#303846;color:#aab4c3;}
 
+
+.rosterViewFilters{
+  display:flex;
+  gap:5px;
+  margin:6px 0 2px;
+  flex-wrap:wrap;
+}
+.rosterViewFilters button{
+  padding:5px 8px;
+  font-size:10px;
+}
+.rosterViewFilters button.active{
+  background:#6c5ce7;
+  border-color:#6c5ce7;
+  color:#fff;
+  font-weight:bold;
+}
+
+.statsBar{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin:0 0 10px;
+}
+.statCard{
+  background:#101722;
+  border:1px solid #2b3748;
+  border-radius:10px;
+  padding:8px 10px;
+  min-width:0;
+}
+.statValue{
+  display:block;
+  font-size:17px;
+  font-weight:800;
+  line-height:1.1;
+  color:#65d68a;
+}
+.statLabel{
+  display:block;
+  margin-top:3px;
+  font-size:9px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:#8e9bad;
+}
+.statCard.warning .statValue{color:#ff7676;}
+
 .tabs{
   display:flex;
   gap:7px;
@@ -263,6 +311,14 @@ button:hover{background:#243247;}
 @media(max-width:700px){
   header{padding:10px 12px;}
   header h2{font-size:18px;}
+
+
+  .statsBar{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+  }
+  .statValue{font-size:15px;}
+  .statCard{padding:7px 8px;}
 
   .wrap{
     padding:8px;
@@ -443,6 +499,13 @@ button:hover{background:#243247;}
 </select>
 </div>
 
+<div class="rosterViewFilters">
+  <button id="viewAllBtn" class="active" onclick="setMemberViewFilter('all')">All</button>
+  <button id="viewMainBtn" onclick="setMemberViewFilter('main')">Main</button>
+  <button id="viewSubBtn" onclick="setMemberViewFilter('sub')">Sub</button>
+  <button id="viewUnassignedBtn" onclick="setMemberViewFilter('unassigned')">Unassigned</button>
+</div>
+
 <div id="members"></div>
 </div>
 
@@ -452,6 +515,14 @@ button:hover{background:#243247;}
 <button id="subBtn" onclick="showTab('sub')">Sub Battlefield</button>
 <button onclick="clearCurrent()">Clear Current</button>
 </div>
+
+<div class="statsBar" id="statsBar">
+  <div class="statCard"><span class="statValue" id="statMembers">0</span><span class="statLabel">Members</span></div>
+  <div class="statCard"><span class="statValue" id="statAssigned">0/60</span><span class="statLabel">Assigned</span></div>
+  <div class="statCard"><span class="statValue" id="statFullTeams">0/12</span><span class="statLabel">Full Teams</span></div>
+  <div class="statCard warning" id="statNoHealerCard"><span class="statValue" id="statNoHealer">0</span><span class="statLabel">No Healer</span></div>
+</div>
+
 <div id="loginBox" class="panel">
   <h3>Officer Login</h3>
   <input id="loginEmail" type="email" placeholder="Email">
@@ -507,6 +578,7 @@ sub:Array.from({length:12},()=>Array(5).fill(null))
 let selected=null;
 let editing=null;
 let current="main";
+let memberViewFilter="all";
 
 async function save(){
   localStorage.setItem("gcc", JSON.stringify(data));
@@ -673,6 +745,19 @@ function memberStatus(id){
   return "UNASSIGNED";
 }
 
+function setMemberViewFilter(mode){
+  memberViewFilter = mode;
+  ["all","main","sub","unassigned"].forEach(v => {
+    const btn = document.getElementById(`view${v.charAt(0).toUpperCase()+v.slice(1)}Btn`);
+    if(btn) btn.classList.toggle("active", v === mode);
+  });
+  renderMembers();
+}
+
+function isAssignedIn(field,id){
+  return data[field].some(team => team.includes(id));
+}
+
 function renderMembers(){
   let q = search.value.toLowerCase();
   let f = filter.value;
@@ -680,6 +765,10 @@ function renderMembers(){
 
   // Show ALL members, including assigned members
   let arr = [...data.members];
+
+  if(memberViewFilter === "main") arr = arr.filter(x => isAssignedIn("main", x.id));
+  if(memberViewFilter === "sub") arr = arr.filter(x => isAssignedIn("sub", x.id));
+  if(memberViewFilter === "unassigned") arr = arr.filter(x => !isAssignedIn("main", x.id) && !isAssignedIn("sub", x.id));
 
   if(q) arr = arr.filter(x =>
     x.name.toLowerCase().includes(q)
@@ -764,9 +853,42 @@ function renderTeams(){
   `).join("");
 }
 
+function renderStats(){
+  const field = data[current];
+  const validMemberIds = new Set(data.members.map(m => m.id));
+
+  let assigned = 0;
+  let fullTeams = 0;
+  let noHealer = 0;
+
+  field.forEach(team => {
+    const membersInTeam = team
+      .filter(id => id && validMemberIds.has(id))
+      .map(id => data.members.find(m => m.id === id))
+      .filter(Boolean);
+
+    assigned += membersInTeam.length;
+    if(membersInTeam.length === 5) fullTeams++;
+    if(membersInTeam.length > 0 && !membersInTeam.some(m => m.cls === "High Priest")) noHealer++;
+  });
+
+  const statMembers = document.getElementById("statMembers");
+  const statAssigned = document.getElementById("statAssigned");
+  const statFullTeams = document.getElementById("statFullTeams");
+  const statNoHealer = document.getElementById("statNoHealer");
+  const noHealerCard = document.getElementById("statNoHealerCard");
+
+  if(statMembers) statMembers.textContent = data.members.length;
+  if(statAssigned) statAssigned.textContent = `${assigned}/60`;
+  if(statFullTeams) statFullTeams.textContent = `${fullTeams}/12`;
+  if(statNoHealer) statNoHealer.textContent = noHealer;
+  if(noHealerCard) noHealerCard.classList.toggle("warning", noHealer > 0);
+}
+
 function render(){
 renderMembers();
 renderTeams();
+renderStats();
 }
 
 function pick(id){
@@ -822,28 +944,47 @@ function closeMemberPool(){
   document.body.classList.remove("memberPoolOpen");
 }
 
+// Show cached/local data immediately so the page feels instant.
 render();
-loadCloudData();
 
-supabaseClient
-  .channel("guild-data-sync")
-  .on(
-    "postgres_changes",
-    {
-      event: "UPDATE",
-      schema: "public",
-      table: "guild_data",
-      filter: "id=eq.1"
-    },
-    payload => {
-      if (payload.new && payload.new.data) {
-        data = payload.new.data;
-        localStorage.setItem("gcc", JSON.stringify(data));
-        render();
+function startCloudSync(){
+  // Refresh from Supabase after the first paint.
+  loadCloudData();
+
+  // Keep other officers/devices in sync in realtime.
+  supabaseClient
+    .channel("guild-data-sync")
+    .on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "guild_data",
+        filter: "id=eq.1"
+      },
+      payload => {
+        if (payload.new && payload.new.data) {
+          const incoming = JSON.stringify(payload.new.data);
+          const currentData = JSON.stringify(data);
+
+          // Avoid an unnecessary full re-render when nothing changed.
+          if (incoming !== currentData) {
+            data = payload.new.data;
+            localStorage.setItem("gcc", incoming);
+            render();
+          }
+        }
       }
-    }
-  )
-  .subscribe();
+    )
+    .subscribe();
+}
+
+// Let the browser paint the UI first, then start network work.
+if ("requestIdleCallback" in window) {
+  requestIdleCallback(startCloudSync, { timeout: 700 });
+} else {
+  setTimeout(startCloudSync, 80);
+}
 </script>
 </body>
 </html>
