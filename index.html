@@ -805,6 +805,90 @@ button:hover{
   .laneTitle{font-size:15px;}
 }
 
+
+/* ===== DESIGN 2: CYBER NEON ===== */
+body{
+  background:
+    linear-gradient(135deg,rgba(0,210,255,.035) 1px,transparent 1px) 0 0/34px 34px,
+    linear-gradient(45deg,rgba(255,45,190,.025) 1px,transparent 1px) 0 0/34px 34px,
+    radial-gradient(circle at 15% 0%,rgba(0,191,255,.16),transparent 30%),
+    radial-gradient(circle at 88% 5%,rgba(255,44,190,.13),transparent 30%),
+    linear-gradient(180deg,#060b18 0%,#080b16 48%,#070912 100%);
+}
+header{
+  background:linear-gradient(180deg,rgba(8,14,30,.97),rgba(7,12,24,.94));
+  border-bottom:1px solid rgba(60,179,255,.45);
+  box-shadow:0 0 24px rgba(0,177,255,.10),0 10px 35px rgba(0,0,0,.35);
+}
+header h2{
+  font-family:'Cinzel',Georgia,serif;
+  font-weight:700;
+  letter-spacing:.13em;
+  background:linear-gradient(90deg,#75eaff 0%,#b4c8ff 42%,#ff78df 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 22px rgba(68,198,255,.22);
+}
+.panel{
+  position:relative;
+  background:linear-gradient(160deg,rgba(9,19,39,.97),rgba(8,13,29,.98));
+  border:1px solid rgba(60,147,255,.38);
+  box-shadow:0 0 0 1px rgba(132,63,255,.08) inset,0 0 25px rgba(0,157,255,.07),0 16px 36px rgba(0,0,0,.28);
+}
+button,input,select,.bulkUpdate textarea{
+  background:linear-gradient(180deg,#101d35,#0b1529);
+  border-color:#284a72;
+}
+button:hover{border-color:#42c7ff;box-shadow:0 0 14px rgba(32,184,255,.20);}
+.tabs button.active{
+  background:linear-gradient(135deg,#087adf,#6758f6 58%,#bd3ddd);
+  border-color:#63dcff;
+  box-shadow:0 0 5px rgba(70,214,255,.8),0 0 18px rgba(41,133,255,.38),inset 0 0 14px rgba(255,255,255,.08);
+}
+.actionBar .accent{border-color:#346895;background:linear-gradient(180deg,#112746,#0c1a31);}
+.actionBar .danger{border-color:#a42e68;color:#ff7cb8;box-shadow:inset 0 0 12px rgba(255,40,137,.06);}
+.statCard{
+  background:linear-gradient(155deg,rgba(10,25,48,.98),rgba(7,16,33,.98));
+  border-color:#274d78;
+  box-shadow:inset 0 0 15px rgba(0,152,255,.025),0 0 15px rgba(0,128,255,.04);
+}
+.statCard::before{width:2px;box-shadow:0 0 10px currentColor;}
+.lane{position:relative;}
+.laneTitle{
+  font-family:'Cinzel',Georgia,serif;
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:.18em;
+  text-align:center;
+  padding:5px 0 8px;
+}
+.lane.top .laneTitle{color:#66dcff;text-shadow:0 0 5px #1fbfff,0 0 18px rgba(31,191,255,.65);}
+.lane.mid .laneTitle{color:#ff77c8;text-shadow:0 0 5px #ff3ea5,0 0 18px rgba(255,62,165,.70);}
+.lane.bottom .laneTitle{color:#b38aff;text-shadow:0 0 5px #8d5cff,0 0 18px rgba(141,92,255,.70);}
+.team{
+  background:linear-gradient(155deg,rgba(9,22,43,.99),rgba(7,14,29,.99));
+  border-width:1px;
+}
+.lane.top .team{
+  --team-accent:#38d5ff;--team-glow:rgba(56,213,255,.95);border-color:#42d8ff;
+  box-shadow:0 0 3px #42d8ff,0 0 10px rgba(56,213,255,.72),0 0 25px rgba(30,156,255,.28),inset 0 0 16px rgba(36,177,255,.08);
+}
+.lane.mid .team{
+  --team-accent:#ff45ad;--team-glow:rgba(255,69,173,.98);border-color:#ff4db3;
+  box-shadow:0 0 3px #ff4db3,0 0 11px rgba(255,69,173,.76),0 0 27px rgba(255,39,159,.30),inset 0 0 17px rgba(255,55,163,.09);
+}
+.lane.bottom .team{
+  --team-accent:#9c64ff;--team-glow:rgba(156,100,255,.98);border-color:#a56cff;
+  box-shadow:0 0 3px #a56cff,0 0 11px rgba(156,100,255,.74),0 0 27px rgba(116,65,255,.30),inset 0 0 17px rgba(133,82,255,.09);
+}
+.team::before{height:2px;box-shadow:0 0 5px var(--team-accent),0 0 15px var(--team-glow);}
+.teamHeader{color:#f6f8ff;text-shadow:0 0 8px rgba(124,207,255,.13);}
+.slot{background:linear-gradient(145deg,#0e1b31,#0b1628);border-color:#23405f;}
+.slot:hover{border-color:#3d79a8;box-shadow:inset 0 0 10px rgba(34,173,255,.06);}
+.member{background:linear-gradient(145deg,#0f1d34,#0b172b);border-color:#244363;}
+.member.sel{border-color:#55d7ff;box-shadow:0 0 4px rgba(85,215,255,.8),0 0 17px rgba(91,100,255,.28);}
+.loginToggleBtn{border-color:#3b68a0;box-shadow:0 0 12px rgba(52,147,255,.08);}
+@media(max-width:700px){.laneTitle{font-size:16px;}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
