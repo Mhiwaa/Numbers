@@ -1,17 +1,97 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Guild War Builder</title>
 <style>
-body{font-family:Arial;background:#10131a;color:white;margin:0;padding:12px}
-h2{margin:8px 0}
-button,input,select{padding:9px;margin:3px;border-radius:8px;border:1px solid #444;background:#222;color:white}
-.controls{position:sticky;top:0;background:#10131a;padding:5px;z-index:2}
-#members{display:flex;gap:7px;overflow-x:auto;padding:10px 0}
-.member{background:#293241;padding:10px;border-radius:9px;min-width:130px}
-.member b{display:block}
+body{font-family:Arial;background:#111;color:#fff;margin:0;padding:10px}
+input,button{padding:9px;margin:3px;border-radius:8px;border:1px solid #444;background:#222;color:#fff}
+#members{display:flex;gap:6px;overflow:auto;margin:10px 0}
+.m{background:#293241;padding:8px;border-radius:8px;min-width:120px}
+.sel{outline:2px solid #69f}
+.teams{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.team{background:#1b2029;padding:7px;border-radius:8px}
+.slot{background:#252c38;min-height:42px;margin:5px 0;padding:6px;border-radius:6px}
 small{color:#aaa}
-.teams{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.team{background:#1b2029;padding:8px;border-radius:10px}
-.slot{background:#252c
+@media(max-width:650px){.teams{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h2>Guild War Builder</h2>
+
+<input id="n" placeholder="IGN">
+<input id="c" placeholder="Class">
+<input id="g" type="number" placeholder="Gear Rating">
+<button onclick="add()">Add</button>
+<button onclick="clearT()">Clear Teams</button>
+
+<h3>Available</h3>
+<div id="members"></div>
+
+<h3>Teams</h3>
+<div class="teams" id="teams"></div>
+
+<script>
+let d=JSON.parse(localStorage.getItem("gw"))||{
+m:[],
+t:Array.from({length:12},()=>Array(5).fill(null))
+};
+let s=null;
+
+function save(){
+localStorage.setItem("gw",JSON.stringify(d));
+render();
+}
+
+function add(){
+let n=document.getElementById("n"),
+c=document.getElementById("c"),
+g=document.getElementById("g");
+if(!n.value.trim())return;
+d.m.push({id:Date.now(),n:n.value.trim(),c:c.value.trim(),g:+g.value||0});
+n.value="";c.value="";g.value="";
+save();
+}
+
+function render(){
+let used=new Set(d.t.flat().filter(Boolean));
+let a=d.m.filter(x=>!used.has(x.id)).sort((x,y)=>y.g-x.g);
+
+members.innerHTML=a.map(x=>
+`<div class="m ${s==x.id?'sel':''}" onclick="pick(${x.id})">
+<b>${x.n}</b><br><small>${x.c} • ${x.g.toLocaleString()}</small>
+</div>`).join("");
+
+teams.innerHTML=d.t.map((t,ti)=>
+`<div class="team"><b>Team ${ti+1}</b>`+
+t.map((id,si)=>{
+let x=d.m.find(y=>y.id==id);
+return `<div class="slot" onclick="put(${ti},${si})">${
+x?`<b>${x.n}</b><br><small>${x.c} • ${x.g.toLocaleString()}</small>
+<button onclick="rem(event,${ti},${si})">✕</button>`:"Tap to assign"
+}</div>`;
+}).join("")+"</div>"
+).join("");
+}
+
+function pick(id){s=id;render()}
+function put(t,i){
+if(!s||d.t[t][i])return;
+d.t[t][i]=s;s=null;save();
+}
+function rem(e,t,i){
+e.stopPropagation();
+d.t[t][i]=null;save();
+}
+function clearT(){
+if(confirm("Clear all teams?")){
+d.t=Array.from({length:12},()=>Array(5).fill(null));
+save();
+}
+}
+
+render();
+</script>
+</body>
+</html>
