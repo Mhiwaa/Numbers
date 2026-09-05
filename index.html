@@ -524,7 +524,7 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
 <div class="tabs">
 <button id="mainBtn" class="active" onclick="showTab('main')">Main Battlefield</button>
 <button id="subBtn" onclick="showTab('sub')">Sub Battlefield</button>
-<button onclick="clearCurrent()">Clear Current</button>
+<button id="clearCurrentBtn" onclick="clearCurrent()">Clear Main</button>
 </div>
 
 <div class="actionBar">
@@ -1108,17 +1108,26 @@ function showTab(tab){
 current=tab;
 mainBtn.classList.toggle("active",tab==="main");
 subBtn.classList.toggle("active",tab==="sub");
+const clearBtn = document.getElementById("clearCurrentBtn");
+if(clearBtn) clearBtn.textContent = tab === "main" ? "Clear Main" : "Reset Sub Layout";
 render();
 }
 
 function clearCurrent(){
-  if(!confirm("Reset all teams in this battlefield?")) return;
   if(current === "main"){
+    if(!confirm("Clear all 60 Main Battlefield slots? Everyone removed from Main will automatically return to Sub.")) return;
     data.main = Array.from({length:12},()=>Array(5).fill(null));
-  } else {
-    // SUB always contains everyone who is not in MAIN; reset means repack them.
-    data.sub = [];
+    selected = null;
+    save();
+    return;
   }
+
+  // Everyone outside MAIN must remain in SUB, so SUB cannot be truly empty.
+  // Resetting SUB means discard the current grouping and rebuild all Sub teams.
+  if(!confirm("Reset the Sub team arrangement? All members outside Main will stay in Sub, but the Sub teams will be rebuilt.")) return;
+  data.sub = [];
+  selected = null;
+  reconcileSubRoster();
   save();
 }
 
