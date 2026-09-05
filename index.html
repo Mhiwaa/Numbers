@@ -94,7 +94,16 @@ button:hover{
 .member small{
   color:#9aa7b8;
 }
-
+.class-Lord-Knight{color:#ff7676!important;}
+.class-Paladin{color:#ffd166!important;}
+.class-High-Wizard{color:#70a1ff!important;}
+.class-High-Priest{color:#ff8ed4!important;}
+.class-Sniper{color:#7bed9f!important;}
+.class-Assassin-Cross{color:#c792ea!important;}
+.class-Whitesmith{color:#ffa502!important;}
+.class-Nightwatch{color:#74b9ff!important;}
+.class-Alithea{color:#55efc4!important;}
+.class-Champion{color:#ffb86c!important;}
 .memberBtns{
   display:flex;
   gap:4px;
@@ -454,7 +463,7 @@ return b.gr-a.gr;
 members.innerHTML=arr.map(m=>`
 <div class="member ${selected===m.id?'sel':''}" onclick="pick(${m.id})">
 <b>${m.name}</b><br>
-<small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
+<small class="class-${m.cls.replaceAll(' ','-')}">${m.cls} • GR ${m.gr.toLocaleString()}</small>
 <div class="memberBtns">
 <button onclick="pick(${m.id})">Select</button>
 <button onclick="editMember(${m.id})">Edit</button>
@@ -486,7 +495,7 @@ function renderTeams(){
             <div class="slot">
               ${m ? `
                 <b>${m.name}</b><br>
-                <small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
+                <small class="class-${m.cls.replaceAll(' ','-')}">${m.cls} • GR ${m.gr.toLocaleString()}</small>
                 <br>
                 <button onclick="removeSlot(event,${ti},${si})">Remove</button>
               ` : `
