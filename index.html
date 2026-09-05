@@ -155,11 +155,32 @@ async function save(){
 
   const { error } = await supabaseClient
     .from("guild_data")
-    .insert({ data: data });
+    .upsert(
+      { id: 1, data: data },
+      { onConflict: "id" }
+    );
 
   if(error){
     console.error("Supabase save error:", error);
     alert("Cloud save failed: " + error.message);
+  }
+}
+async function loadCloudData(){
+  const { data: row, error } = await supabaseClient
+    .from("guild_data")
+    .select("data")
+    .eq("id", 1)
+    .maybeSingle();
+
+  if(error){
+    console.error("Cloud load error:", error);
+    return;
+  }
+
+  if(row && row.data){
+    data = row.data;
+    localStorage.setItem("gcc", JSON.stringify(data));
+    render();
   }
 }
 function saveMember(){
@@ -324,6 +345,7 @@ save();
 }
 
 render();
+loadCloudData();
 </script>
 </body>
 </html>
