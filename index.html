@@ -4,28 +4,214 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Guild Command Center</title>
 <style>
-body{font-family:Arial;background:#0d1117;color:#fff;margin:0}
-header{padding:12px;background:#161b22;position:sticky;top:0;z-index:5}
-h2,h3{margin:8px 0}
-input,select,button{padding:9px;margin:3px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#fff}
-button{cursor:pointer}
-.wrap{padding:10px}
-.panel{background:#161b22;padding:10px;border-radius:12px;margin-bottom:10px}
-.controls{display:flex;flex-wrap:wrap;gap:4px}
-#members{display:flex;gap:7px;overflow-x:auto;padding:8px 0}
-.member{background:#21262d;padding:9px;border-radius:9px;min-width:145px}
-.member.sel{outline:2px solid #58a6ff}
-.member small{color:#8b949e}
-.memberBtns{margin-top:5px}
-.memberBtns button{padding:4px 7px;font-size:11px}
-.tabs button.active{background:#58a6ff;color:#000}
-.teams{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.team{background:#161b22;padding:8px;border-radius:10px;border:1px solid #30363d}
-.slot{background:#21262d;min-height:45px;margin:5px 0;padding:7px;border-radius:7px;border:1px dashed #484f58}
-.slot small{color:#8b949e}
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#0b0f16;
+  color:#f5f7fb;
+}
+
+header{
+  padding:14px 18px;
+  background:#101722;
+  border-bottom:1px solid #273244;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+h2,h3{
+  margin:8px 0;
+}
+
+.wrap{
+  padding:12px;
+  max-width:1500px;
+  margin:auto;
+}
+
+.panel{
+  background:#121a26;
+  border:1px solid #273244;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
+}
+
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  align-items:center;
+}
+
+input,
+select,
+button{
+  background:#1a2330;
+  color:#f5f7fb;
+  border:1px solid #334155;
+  border-radius:8px;
+  padding:9px 11px;
+}
+
+input::placeholder{
+  color:#718096;
+}
+
+button{
+  cursor:pointer;
+}
+
+button:hover{
+  background:#243247;
+}
+
+#members{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:10px 0 3px;
+}
+
+.member{
+  min-width:165px;
+  background:#182230;
+  border:1px solid #2d3b50;
+  border-radius:10px;
+  padding:10px;
+}
+
+.member.sel{
+  outline:2px solid #4da3ff;
+  background:#172b42;
+}
+
+.member small{
+  color:#9aa7b8;
+}
+
+.memberBtns{
+  display:flex;
+  gap:4px;
+  margin-top:7px;
+}
+
+.memberBtns button{
+  padding:5px 8px;
+  font-size:11px;
+}
+
+.tabs{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.tabs button.active{
+  background:#4da3ff;
+  color:#07111f;
+  border-color:#4da3ff;
+  font-weight:bold;
+}
+
+.teams{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.team{
+  background:#101722;
+  border:1px solid #2b3748;
+  border-radius:12px;
+  padding:9px;
+}
+
+.teamHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:2px 3px 8px;
+  font-size:14px;
+}
+
+.teamHeader span{
+  color:#65d68a;
+  font-size:12px;
+  font-weight:bold;
+}
+
+.slot{
+  position:relative;
+  background:#182230;
+  border:1px solid #2c394c;
+  border-radius:8px;
+  min-height:54px;
+  margin:5px 0;
+  padding:8px 34px 8px 9px;
+}
+
+.slot b{
+  font-size:13px;
+}
+
+.slot small{
+  color:#9aa7b8;
+  font-size:11px;
+}
+
+.slot button{
+  padding:5px 7px;
+  font-size:11px;
+  margin-top:4px;
+}
+
 @media(max-width:700px){
-.teams{grid-template-columns:1fr}
-.controls input,.controls select{max-width:47%}
+  header{
+    padding:10px 12px;
+  }
+
+  header h2{
+    font-size:18px;
+  }
+
+  .wrap{
+    padding:8px;
+  }
+
+  .panel{
+    padding:9px;
+  }
+
+  .teams{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+  }
+
+  .team{
+    padding:6px;
+  }
+
+  .teamHeader{
+    font-size:12px;
+  }
+
+  .slot{
+    min-height:48px;
+    padding:7px;
+  }
+
+  .controls input,
+  .controls select{
+    min-width:0;
+    max-width:47%;
+  }
 }
 </style>
 </head>
