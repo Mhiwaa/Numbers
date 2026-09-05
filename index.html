@@ -260,7 +260,10 @@ button:hover{
 <input id="gr" type="number" placeholder="Gear Rating">
 <button onclick="saveMember()">Add Member</button>
 </div>
-
+<div class="bulkUpdate">
+  <textarea id="rosterPaste" placeholder="Paste Class | IGN | Gear Rating from Google Sheets"></textarea>
+  <button onclick="bulkUpdateRoster()">Update Roster</button>
+</div>
 <div class="controls">
 <input id="search" placeholder="Search IGN" oninput="render()">
 
