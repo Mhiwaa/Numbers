@@ -92,13 +92,48 @@ button{cursor:pointer}
 <button id="subBtn" onclick="showTab('sub')">Sub Battlefield</button>
 <button onclick="clearCurrent()">Clear Current</button>
 </div>
+<div id="loginBox" class="panel">
+  <h3>Officer Login</h3>
+  <input id="loginEmail" type="email" placeholder="Email">
+  <input id="loginPassword" type="password" placeholder="Password">
+  <button onclick="officerLogin()">Login</button>
+  <button onclick="officerLogout()">Logout</button>
+  <span id="loginStatus">Not logged in</span>
+</div>
 
 <div class="teams" id="teams"></div>
-</div>
 
-</div>
 
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = "https://wgiibguqueuwetrmxixa.supabase.co";
+const SUPABASE_KEY = "sb_publishable_UJR0HaAeyOmv0-lL5yFMYg_iXyH3BCN";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+async function officerLogin(){
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if(error){
+    alert("Login failed: " + error.message);
+    return;
+  }
+
+  document.getElementById("loginStatus").textContent = "Logged in";
+  alert("Login successful!");
+}
+
+async function officerLogout(){
+  await supabaseClient.auth.signOut();
+  document.getElementById("loginStatus").textContent = "Not logged in";
+}
 const classes=[
 "Lord Knight","Paladin","High Wizard","High Priest","Sniper",
 "Assassin Cross","Whitesmith","Nightwatch","Alithea","Champion"
@@ -114,11 +149,20 @@ let selected=null;
 let editing=null;
 let current="main";
 
-function save(){
-localStorage.setItem("gcc",JSON.stringify(data));
-render();
-}
+async function save(){
+  localStorage.setItem("gcc", JSON.stringify(data));
 
+  const { error } = await supabaseClient
+    .from("guild_data")
+    .insert({ data: data });
+
+  if(error){
+    console.error("Supabase save error:", error);
+    alert("Cloud save failed: " + error.message);
+  }
+
+  render();
+}
 function saveMember(){
 let n=name.value.trim();
 let c=cls.value;
