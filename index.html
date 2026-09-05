@@ -292,12 +292,16 @@ render();
 }
 
 function assign(t,s){
-if(!selected)return;
-if(data[current][t][s])return;
+  if(!selected)return;
 
-data[current][t][s]=selected;
-selected=null;
-save();
+  const existingId = data[current][t][s];
+  const existingMember = data.members.find(m => m.id === existingId);
+
+  if(existingId && existingMember)return;
+
+  data[current][t][s]=selected;
+  selected=null;
+  save();
 }
 
 function removeSlot(e,t,s){
