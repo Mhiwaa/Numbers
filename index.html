@@ -2,39 +2,275 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Guild War Builder</title>
+<title>Guild Command Center</title>
 <style>
-body{font-family:Arial;background:#111;color:#fff;margin:0;padding:10px}
-input,button{padding:9px;margin:3px;border-radius:8px;border:1px solid #444;background:#222;color:#fff}
-#members{display:flex;gap:6px;overflow:auto;margin:10px 0}
-.m{background:#293241;padding:8px;border-radius:8px;min-width:120px}
-.sel{outline:2px solid #69f}
-.teams{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
-.team{background:#1b2029;padding:7px;border-radius:8px}
-.slot{background:#252c38;min-height:42px;margin:5px 0;padding:6px;border-radius:6px}
-small{color:#aaa}
-@media(max-width:650px){.teams{grid-template-columns:1fr}}
+body{font-family:Arial;background:#0d1117;color:#fff;margin:0}
+header{padding:12px;background:#161b22;position:sticky;top:0;z-index:5}
+h2,h3{margin:8px 0}
+input,select,button{padding:9px;margin:3px;border-radius:8px;border:1px solid #30363d;background:#21262d;color:#fff}
+button{cursor:pointer}
+.wrap{padding:10px}
+.panel{background:#161b22;padding:10px;border-radius:12px;margin-bottom:10px}
+.controls{display:flex;flex-wrap:wrap;gap:4px}
+#members{display:flex;gap:7px;overflow-x:auto;padding:8px 0}
+.member{background:#21262d;padding:9px;border-radius:9px;min-width:145px}
+.member.sel{outline:2px solid #58a6ff}
+.member small{color:#8b949e}
+.memberBtns{margin-top:5px}
+.memberBtns button{padding:4px 7px;font-size:11px}
+.tabs button.active{background:#58a6ff;color:#000}
+.teams{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.team{background:#161b22;padding:8px;border-radius:10px;border:1px solid #30363d}
+.slot{background:#21262d;min-height:45px;margin:5px 0;padding:7px;border-radius:7px;border:1px dashed #484f58}
+.slot small{color:#8b949e}
+@media(max-width:700px){
+.teams{grid-template-columns:1fr}
+.controls input,.controls select{max-width:47%}
+}
 </style>
 </head>
 <body>
 
-<h2>Guild War Builder</h2>
+<header>
+<h2>⚔️ Guild Command Center</h2>
+</header>
 
-<input id="n" placeholder="IGN">
-<input id="c" placeholder="Class">
-<input id="g" type="number" placeholder="Gear Rating">
-<button onclick="add()">Add</button>
-<button onclick="clearT()">Clear Teams</button>
+<div class="wrap">
 
-<h3>Available</h3>
+<div class="panel">
+<h3>Roster</h3>
+
+<div class="controls">
+<input id="name" placeholder="IGN">
+
+<select id="cls">
+<option>Lord Knight</option>
+<option>Paladin</option>
+<option>High Wizard</option>
+<option>High Priest</option>
+<option>Sniper</option>
+<option>Assassin Cross</option>
+<option>Whitesmith</option>
+<option>Nightwatch</option>
+<option>Alithea</option>
+<option>Champion</option>
+</select>
+
+<input id="gr" type="number" placeholder="Gear Rating">
+<button onclick="saveMember()">Add Member</button>
+</div>
+
+<div class="controls">
+<input id="search" placeholder="Search IGN" oninput="render()">
+
+<select id="filter" onchange="render()">
+<option value="">All Classes</option>
+<option>Lord Knight</option>
+<option>Paladin</option>
+<option>High Wizard</option>
+<option>High Priest</option>
+<option>Sniper</option>
+<option>Assassin Cross</option>
+<option>Whitesmith</option>
+<option>Nightwatch</option>
+<option>Alithea</option>
+<option>Champion</option>
+</select>
+
+<select id="sort" onchange="render()">
+<option value="gr">Highest GR</option>
+<option value="az">A-Z</option>
+</select>
+</div>
+
 <div id="members"></div>
+</div>
 
-<h3>Teams</h3>
+<div class="panel">
+<div class="tabs">
+<button id="mainBtn" class="active" onclick="showTab('main')">Main Battlefield</button>
+<button id="subBtn" onclick="showTab('sub')">Sub Battlefield</button>
+<button onclick="clearCurrent()">Clear Current</button>
+</div>
+
 <div class="teams" id="teams"></div>
+</div>
+
+</div>
 
 <script>
-let d=JSON.parse(localStorage.getItem("gw"))||{
-m:[],
+const classes=[
+"Lord Knight","Paladin","High Wizard","High Priest","Sniper",
+"Assassin Cross","Whitesmith","Nightwatch","Alithea","Champion"
+];
+
+let data=JSON.parse(localStorage.getItem("gcc"))||{
+members:[],
+main:Array.from({length:12},()=>Array(5).fill(null)),
+sub:Array.from({length:12},()=>Array(5).fill(null))
+};
+
+let selected=null;
+let editing=null;
+let current="main";
+
+function save(){
+localStorage.setItem("gcc",JSON.stringify(data));
+render();
+}
+
+function saveMember(){
+let n=name.value.trim();
+let c=cls.value;
+let g=Number(gr.value)||0;
+
+if(!n)return alert("Enter IGN");
+
+if(editing){
+let m=data.members.find(x=>x.id===editing);
+m.name=n;m.cls=c;m.gr=g;
+editing=null;
+}else{
+data.members.push({
+id:Date.now()+Math.random(),
+name:n,
+cls:c,
+gr:g
+});
+}
+
+name.value="";
+gr.value="";
+save();
+}
+
+function editMember(id){
+let m=data.members.find(x=>x.id===id);
+name.value=m.name;
+cls.value=m.cls;
+gr.value=m.gr;
+editing=id;
+window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function deleteMember(id){
+if(!confirm("Delete this member?"))return;
+
+data.members=data.members.filter(x=>x.id!==id);
+
+["main","sub"].forEach(k=>{
+data[k].forEach(t=>{
+for(let i=0;i<t.length;i++){
+if(t[i]===id)t[i]=null;
+}
+});
+});
+
+if(selected===id)selected=null;
+save();
+}
+
+function usedIds(){
+return new Set([
+...data.main.flat(),
+...data.sub.flat()
+].filter(Boolean));
+}
+
+function renderMembers(){
+let used=usedIds();
+
+let q=search.value.toLowerCase();
+let f=filter.value;
+let s=sort.value;
+
+let arr=data.members.filter(x=>!used.has(x.id));
+
+if(q)arr=arr.filter(x=>x.name.toLowerCase().includes(q));
+if(f)arr=arr.filter(x=>x.cls===f);
+
+arr.sort((a,b)=>{
+if(s==="az")return a.name.localeCompare(b.name);
+return b.gr-a.gr;
+});
+
+members.innerHTML=arr.map(m=>`
+<div class="member ${selected===m.id?'sel':''}">
+<b onclick="pick('${m.id}')">${m.name}</b><br>
+<small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
+<div class="memberBtns">
+<button onclick="editMember('${m.id}')">Edit</button>
+<button onclick="deleteMember('${m.id}')">Delete</button>
+</div>
+</div>
+`).join("");
+}
+
+function renderTeams(){
+let field=data[current];
+
+teams.innerHTML=field.map((team,ti)=>`
+<div class="team">
+<b>${current==="main"?"Main":"Sub"} Team ${ti+1}</b>
+${team.map((id,si)=>{
+let m=data.members.find(x=>x.id===id);
+
+return `
+<div class="slot" onclick="assign(${ti},${si})">
+${m?`
+<b>${m.name}</b><br>
+<small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
+<br><button onclick="removeSlot(event,${ti},${si})">Remove</button>
+`:`Tap to assign`}
+</div>
+`;
+}).join("")}
+</div>
+`).join("");
+}
+
+function render(){
+renderMembers();
+renderTeams();
+}
+
+function pick(id){
+selected=id;
+render();
+}
+
+function assign(t,s){
+if(!selected)return;
+if(data[current][t][s])return;
+
+data[current][t][s]=selected;
+selected=null;
+save();
+}
+
+function removeSlot(e,t,s){
+e.stopPropagation();
+data[current][t][s]=null;
+save();
+}
+
+function showTab(tab){
+current=tab;
+mainBtn.classList.toggle("active",tab==="main");
+subBtn.classList.toggle("active",tab==="sub");
+render();
+}
+
+function clearCurrent(){
+if(!confirm("Clear all teams in this battlefield?"))return;
+data[current]=Array.from({length:12},()=>Array(5).fill(null));
+save();
+}
+
+render();
+</script>
+</body>
+</html>m:[],
 t:Array.from({length:12},()=>Array(5).fill(null))
 };
 let s=null;
