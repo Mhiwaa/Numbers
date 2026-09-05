@@ -151,6 +151,7 @@ let current="main";
 
 async function save(){
   localStorage.setItem("gcc", JSON.stringify(data));
+  render();
 
   const { error } = await supabaseClient
     .from("guild_data")
@@ -160,8 +161,6 @@ async function save(){
     console.error("Supabase save error:", error);
     alert("Cloud save failed: " + error.message);
   }
-
-  render();
 }
 function saveMember(){
 let n=name.value.trim();
