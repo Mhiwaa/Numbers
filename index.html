@@ -942,6 +942,39 @@ header::before{left:12px} header::after{right:12px}
 .guildFooter>span{letter-spacing:.32em;font-size:10px}.guildFooter em{font-size:10px;color:#ff80bd}.guildFooter b{font-size:9px;letter-spacing:.22em;color:#c9a4be}
 @media(max-width:700px){.brandTitle{font-size:21px}.brandSub{font-size:7px;margin-left:12px}.brandQuote{font-size:8px;margin-left:48px}.guildFooter{display:none}.laneTitle{font-size:18px!important}}
 
+
+/* === Pink Ragnarok-inspired fantasy polish === */
+:root{--pink:#ff5fbd;--pink2:#ff9bd8;--violet:#9d72ff;--cyan:#68d8ff;--ink:#080d22}
+header{min-height:112px;padding:18px 24px!important;background:
+linear-gradient(90deg,rgba(19,5,34,.78),rgba(12,10,36,.62),rgba(35,7,42,.76)),
+url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 220'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23ffb6df'/%3E%3Cstop offset='.55' stop-color='%23955cff'/%3E%3Cstop offset='1' stop-color='%23272b70'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='220' fill='%23070b20'/%3E%3Ccircle cx='930' cy='58' r='76' fill='%23ff86c9' opacity='.16'/%3E%3Cg fill='url(%23g)' opacity='.34'%3E%3Cpath d='M0 180L90 112l45 35 68-82 72 82 70-42 88 75z'/%3E%3Cpath d='M650 180l70-78 35 31 70-101 44 83 52-49 54 114z'/%3E%3C/g%3E%3Cg fill='%23ff9bd8' opacity='.7'%3E%3Ccircle cx='78' cy='42' r='3'/%3E%3Ccircle cx='565' cy='52' r='2'/%3E%3Ccircle cx='1060' cy='95' r='3'/%3E%3Cpath d='M110 28l5 12 12 5-12 5-5 12-5-12-12-5 12-5z'/%3E%3Cpath d='M1120 32l4 10 10 4-10 4-4 10-4-10-10-4 10-4z'/%3E%3C/g%3E%3C/svg%3E") center/cover no-repeat!important;border-bottom:1px solid #ff67bc!important;box-shadow:0 0 30px rgba(255,74,180,.18)!important}
+.brandTitle{font-size:34px!important;text-shadow:0 0 8px #fff,0 0 18px #ff8bd0,0 0 34px rgba(255,71,181,.7)!important}
+.brandSub{letter-spacing:.28em!important}.brandQuote{color:#ff9bd2!important}
+.panel{background:linear-gradient(180deg,rgba(8,13,35,.96),rgba(7,11,29,.97))!important;border-color:rgba(255,95,190,.25)!important;box-shadow:inset 0 1px rgba(255,255,255,.025),0 0 24px rgba(255,62,176,.06)!important}
+/* Sub: always three teams across; phone keeps horizontal scroll so cards stay readable */
+.subTeamsFlat{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important}
+@media(max-width:1000px){.subTeamsFlat{grid-template-columns:repeat(3,minmax(230px,1fr))!important;min-width:720px!important}}
+@media(max-width:700px){.subTeamsFlat{grid-template-columns:repeat(3,240px)!important;min-width:760px!important}}
+/* Sub battlefield fantasy banner */
+#teams.subTeamsFlat{position:relative;padding-top:72px!important;border:1px solid rgba(255,93,190,.32);border-radius:12px;background:
+linear-gradient(180deg,rgba(255,66,181,.15) 0 70px,rgba(8,13,35,.25) 70px),
+radial-gradient(circle at 50% 15px,rgba(255,126,214,.30),transparent 120px)}
+#teams.subTeamsFlat:before{content:'SUB BATTLEFIELD';position:absolute;left:0;right:0;top:13px;text-align:center;font-family:'Cinzel',serif;font-size:24px;letter-spacing:.12em;color:#ffd0ec;text-shadow:0 0 7px #ff5fbd,0 0 20px rgba(255,64,184,.75)}
+#teams.subTeamsFlat:after{content:'✦  DIFFERENT PATHS  ·  SAME VICTORY  ✦';position:absolute;left:0;right:0;top:45px;text-align:center;font-size:8px;letter-spacing:.24em;color:#f39acb}
+/* Attendance gets its own pink glass panel */
+#attendanceView{position:relative;overflow:hidden;border:1px solid rgba(255,91,184,.38);border-radius:14px;padding:16px;background:linear-gradient(180deg,rgba(29,8,43,.60),rgba(7,13,35,.94) 150px);box-shadow:0 0 30px rgba(255,65,181,.09) inset}
+#attendanceView>h3{font-family:'Cinzel',serif;text-align:center;font-size:24px;letter-spacing:.08em;color:#ffd0eb;text-shadow:0 0 8px #ff57b8;margin:3px 0 15px}
+.attendanceToolbar{padding:10px;border:1px solid rgba(255,104,194,.25);border-radius:10px;background:rgba(9,16,42,.72)}
+.attendanceStats .statCard:nth-child(1){border-color:#b64d9b}.attendanceStats .statCard:nth-child(2){border-color:#49bd85}.attendanceStats .statCard:nth-child(3){border-color:#ff5f7f}.attendanceStats .statCard:nth-child(4){border-color:#7b6fe9}.attendanceStats .statCard:nth-child(5){border-color:#e5b75b}
+.attendanceList{border-color:rgba(255,99,190,.28)!important;background:rgba(8,13,35,.72)}
+.attendanceRow:nth-child(even){background:rgba(255,88,184,.025)}
+.missedSummary{margin-top:14px;padding:12px;border:1px solid rgba(255,94,184,.25);border-radius:12px;background:linear-gradient(180deg,rgba(42,11,51,.35),rgba(8,13,34,.75))}
+/* Artwork-style footer stays visible on phones */
+.guildFooter{min-height:86px!important;position:relative;overflow:hidden;padding:14px 20px!important;background:
+linear-gradient(90deg,rgba(41,8,47,.80),rgba(9,14,39,.72),rgba(49,8,48,.82)),
+url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 180'%3E%3Crect width='1200' height='180' fill='%23070b20'/%3E%3Cg fill='%23ff79c8' opacity='.22'%3E%3Cpath d='M0 160L85 83l52 51 62-75 80 101z'/%3E%3Cpath d='M920 160l72-88 49 51 65-86 94 123z'/%3E%3C/g%3E%3Cg fill='%23ff9bd5' opacity='.55'%3E%3Ccircle cx='300' cy='38' r='3'/%3E%3Ccircle cx='865' cy='43' r='2'/%3E%3Cpath d='M70 35l5 12 12 5-12 5-5 12-5-12-12-5 12-5z'/%3E%3Cpath d='M1130 46l5 12 12 5-12 5-5 12-5-12-12-5 12-5z'/%3E%3C/g%3E%3C/svg%3E") center/cover no-repeat!important;border-color:#d64ca5!important;box-shadow:0 0 22px rgba(255,68,181,.16),inset 0 0 28px rgba(255,71,180,.08)!important}
+@media(max-width:700px){header{min-height:84px!important;padding:10px 12px!important}.brandTitle{font-size:22px!important}.guildFooter{display:flex!important;min-width:720px;min-height:68px!important;padding:10px 14px!important}.guildFooter>span{font-size:8px}.guildFooter em{font-size:8px}.guildFooter b{font-size:7px}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
