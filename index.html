@@ -889,6 +889,59 @@ button:hover{border-color:#42c7ff;box-shadow:0 0 14px rgba(32,184,255,.20);}
 .loginToggleBtn{border-color:#3b68a0;box-shadow:0 0 12px rgba(52,147,255,.08);}
 @media(max-width:700px){.laneTitle{font-size:16px;}}
 
+
+/* ===== Pink Fantasy Guild Theme — reference inspired ===== */
+body{
+  font-family:'Inter',sans-serif;
+  background:
+    radial-gradient(circle at 50% -10%,rgba(121,35,129,.22),transparent 36%),
+    radial-gradient(circle at 8% 45%,rgba(220,45,119,.10),transparent 28%),
+    linear-gradient(180deg,#08091a 0%,#090d20 45%,#070916 100%);
+}
+header{
+  position:relative; overflow:visible;
+  background:linear-gradient(180deg,rgba(16,10,35,.98),rgba(10,13,31,.97));
+  border:1px solid rgba(255,116,190,.48); border-top:0;
+  box-shadow:0 0 22px rgba(255,70,170,.18),inset 0 -1px rgba(255,112,188,.24);
+  padding:14px 20px 12px;
+}
+header::before,header::after{content:'✦';position:absolute;top:12px;color:#ff9bd0;text-shadow:0 0 12px #ff4eac;font-size:18px;opacity:.9}
+header::before{left:12px} header::after{right:12px}
+.brandBlock{line-height:1;text-align:left;padding-left:12px}
+.brandTitle{font-family:'Cinzel',serif;font-size:32px;font-weight:700;letter-spacing:.11em;color:#fff0f7;text-shadow:0 0 5px #fff,0 0 13px #ff72b9,0 0 30px rgba(255,57,160,.6)}
+.brandSub{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.28em;color:#e6d8ea;margin:8px 0 5px 31px}
+.brandQuote{font-family:'Cinzel',serif;font-size:11px;font-style:italic;letter-spacing:.08em;color:#ff9ecb;margin-left:95px;text-shadow:0 0 8px rgba(255,80,170,.55)}
+.panel{background:linear-gradient(160deg,rgba(12,17,40,.96),rgba(8,12,30,.97));border-color:rgba(121,91,180,.46);box-shadow:inset 0 0 25px rgba(79,42,126,.06)}
+.moduleTabs button.active,.battlefieldTabs button.active{background:linear-gradient(135deg,#ff69c0,#df49ff);border-color:#ff8bd2;color:white;box-shadow:0 0 5px #ff76c7,0 0 18px rgba(255,65,181,.58),inset 0 0 12px rgba(255,255,255,.16)}
+.statsBar{gap:9px}
+.statCard{background:linear-gradient(150deg,rgba(13,21,47,.98),rgba(9,14,34,.98));border-color:#4a416d;box-shadow:inset 0 0 14px rgba(76,76,170,.06);border-radius:10px}
+.statCard:nth-child(1),.statCard:nth-child(3){border-color:#a7429a;box-shadow:0 0 10px rgba(255,71,188,.16),inset 0 0 14px rgba(255,71,188,.05)}
+.statCard:nth-child(2){border-color:#3d82b4;box-shadow:0 0 10px rgba(67,180,255,.13)}
+.statCard:nth-child(4){border-color:#4c9d76;box-shadow:0 0 10px rgba(85,234,161,.12)}
+.statCard:nth-child(5){border-color:#9e7d45;box-shadow:0 0 10px rgba(255,205,99,.12)}
+.statCard:nth-child(6){border-color:#a73d62;box-shadow:0 0 10px rgba(255,70,115,.13)}
+.teams{position:relative}
+.lane{border:1px solid rgba(255,95,184,.24);padding:8px;border-radius:2px;background:rgba(8,11,29,.68);overflow:hidden}
+.lane::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.95;background-repeat:no-repeat;background-size:100% 125px;background-position:top center;mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.8) 55%,transparent 100%)}
+.lane.top::before{background-image:linear-gradient(180deg,rgba(244,46,116,.38),rgba(80,17,58,.18),transparent),radial-gradient(ellipse at 25% 70%,rgba(255,45,111,.45),transparent 25%),linear-gradient(135deg,transparent 40%,rgba(255,65,138,.16) 41%,transparent 60%)}
+.lane.mid::before{background-image:linear-gradient(180deg,rgba(255,35,181,.42),rgba(112,18,112,.18),transparent),radial-gradient(ellipse at 50% 40%,rgba(255,53,222,.60),transparent 20%),linear-gradient(115deg,transparent 42%,rgba(255,108,238,.22) 43%,transparent 54%)}
+.lane.bottom::before{background-image:linear-gradient(180deg,rgba(100,57,215,.42),rgba(36,25,94,.20),transparent),radial-gradient(ellipse at 75% 65%,rgba(100,68,255,.48),transparent 28%),linear-gradient(45deg,transparent 45%,rgba(139,100,255,.16) 46%,transparent 60%)}
+.laneTitle{position:relative;z-index:1;font-family:'Cinzel',serif;font-size:25px!important;letter-spacing:.07em;padding:2px 0 10px;border-bottom:1px solid currentColor;margin-bottom:8px}
+.lane.top .laneTitle{color:#ffb0cf;text-shadow:0 0 5px #ff6b9f,0 0 20px rgba(255,56,129,.72)}
+.lane.mid .laneTitle{color:#ffd1ec;text-shadow:0 0 5px #ff4fbc,0 0 21px rgba(255,49,181,.78)}
+.lane.bottom .laneTitle{color:#d7c4ff;text-shadow:0 0 5px #9a6cff,0 0 21px rgba(127,76,255,.76)}
+.laneTeams{position:relative;z-index:1}
+.team{border-width:2px!important;border-radius:13px!important;background:linear-gradient(160deg,rgba(13,16,39,.98),rgba(8,12,30,.99))!important;overflow:hidden}
+.lane.top .team{--team-accent:#ff668f;--team-glow:rgba(255,73,125,.98);border-color:#ff6a91!important;box-shadow:0 0 3px #fff0f5,0 0 9px #ff4d80,0 0 23px rgba(255,54,111,.45),inset 0 0 18px rgba(255,61,119,.10)!important}
+.lane.mid .team{--team-accent:#ff56bd;--team-glow:rgba(255,60,183,.99);border-color:#ff65c4!important;box-shadow:0 0 3px #fff1fb,0 0 10px #ff42b7,0 0 25px rgba(255,40,174,.48),inset 0 0 18px rgba(255,55,184,.11)!important}
+.lane.bottom .team{--team-accent:#9b70ff;--team-glow:rgba(142,92,255,.99);border-color:#a47cff!important;box-shadow:0 0 3px #f5efff,0 0 10px #8d61ff,0 0 25px rgba(116,70,255,.46),inset 0 0 18px rgba(131,86,255,.11)!important}
+.teamHeader{font-family:'Cinzel',serif;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid rgba(255,255,255,.07);padding-bottom:5px;margin-bottom:4px}
+.teamHeader::before{content:'♛';margin-right:7px;color:var(--team-accent);text-shadow:0 0 8px var(--team-accent)}
+.slot{border-radius:8px;background:linear-gradient(90deg,rgba(19,24,53,.98),rgba(12,18,42,.98));border-color:rgba(105,113,163,.36)}
+.guildFooter{margin-top:10px;border:1px solid rgba(255,91,177,.35);border-top-color:#c6499c;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(90deg,rgba(34,11,44,.72),rgba(9,14,34,.9),rgba(33,12,47,.72));font-family:'Cinzel',serif;color:#dca6c7;box-shadow:0 0 20px rgba(255,57,169,.08) inset}
+.guildFooter>span{letter-spacing:.32em;font-size:10px}.guildFooter em{font-size:10px;color:#ff80bd}.guildFooter b{font-size:9px;letter-spacing:.22em;color:#c9a4be}
+@media(max-width:700px){.brandTitle{font-size:21px}.brandSub{font-size:7px;margin-left:12px}.brandQuote{font-size:8px;margin-left:48px}.guildFooter{display:none}.laneTitle{font-size:18px!important}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
@@ -896,7 +949,7 @@ button:hover{border-color:#42c7ff;box-shadow:0 0 14px rgba(32,184,255,.20);}
 
 <header>
   <div class="headerInner">
-    <h2>Numbers</h2>
+    <div class="brandBlock"><div class="brandTitle">✦ NUMBERS ✦</div><div class="brandSub">GUILD LEAGUE TEAM BUILDER</div><div class="brandQuote">Stronger Together</div></div>
     <div class="headerAuth">
       <button id="loginToggleBtn" class="loginToggleBtn" onclick="toggleLoginBox()">👤 Officer</button>
       <div id="loginBox" class="headerLogin loginPopover">
@@ -988,6 +1041,7 @@ button:hover{border-color:#42c7ff;box-shadow:0 0 14px rgba(32,184,255,.20);}
 </div>
 
 <div class="battlefieldScroll"><div class="teams" id="teams"></div></div>
+<div class="guildFooter"><span>NUMBERS</span><em>More than a Guild, A Family ♥</em><b>PREPARE · STRATEGIZE · COMPETE · WIN</b><em>Good Players, Better People ♥</em></div>
 </div>
 
 <div id="attendanceView" class="hiddenView">
