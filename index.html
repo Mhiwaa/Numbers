@@ -220,12 +220,37 @@ button:hover{
 
   .wrap{
   padding:8px;
-  display:grid;
-  grid-template-columns:320px 1fr;
-  gap:10px;
-  align-items:start;
+  display:block;
+}
+.memberPoolBtn{
+  display:block;
+  margin-bottom:8px;
 }
 
+.wrap > .panel:first-of-type{
+  position:fixed;
+  top:0;
+  left:0;
+  width:88%;
+  max-width:360px;
+  height:100vh;
+  overflow-y:auto;
+  z-index:1000;
+  transform:translateX(-105%);
+  transition:transform .2s ease;
+  border-radius:0 12px 12px 0;
+}
+
+body.memberPoolOpen .wrap > .panel:first-of-type{
+  transform:translateX(0);
+}
+
+body.memberPoolOpen .memberPoolBtn{
+  position:fixed;
+  top:10px;
+  right:10px;
+  z-index:1100;
+}
   .panel{
     padding:9px;
   }
@@ -263,7 +288,7 @@ button:hover{
 </header>
 
 <div class="wrap">
-
+<button class="memberPoolBtn" onclick="toggleMemberPool()">☰ Member Pool</button>
 <div class="panel">
 <h3>Roster</h3>
 
@@ -664,6 +689,10 @@ function clearCurrent(){
 if(!confirm("Clear all teams in this battlefield?"))return;
 data[current]=Array.from({length:12},()=>Array(5).fill(null));
 save();
+}
+
+function toggleMemberPool(){
+  document.body.classList.toggle("memberPoolOpen");
 }
 
 render();
