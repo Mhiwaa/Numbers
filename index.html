@@ -3,6 +3,9 @@
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Numbers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;}
 
@@ -583,6 +586,216 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
 .viewerMode .officerOnly{opacity:.45;cursor:not-allowed;}
 .viewerMode .officerOnly:disabled{filter:grayscale(.2);}
 .viewOnlyBadge{font-size:11px;opacity:.75;margin-left:8px;}
+
+
+/* ===== NUMBERS FANTASY NEON THEME ===== */
+:root{
+  --bg:#090d15;
+  --panel:#101722;
+  --panel2:#151f2d;
+  --line:#2a3a50;
+  --text:#f7f8fb;
+  --muted:#8e9bb0;
+  --blue:#5da8ff;
+  --violet:#9d6cff;
+  --pink:#ff6cae;
+  --gold:#eebf62;
+  --green:#59d89a;
+  --cyan:#5ed5e8;
+}
+
+html{background:var(--bg);}
+body{
+  font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:
+    radial-gradient(circle at 20% -10%,rgba(90,77,180,.18),transparent 32%),
+    radial-gradient(circle at 85% 0%,rgba(39,101,171,.13),transparent 28%),
+    linear-gradient(180deg,#0a0f19 0%,#090d15 100%);
+  color:var(--text);
+}
+
+header{
+  background:rgba(12,18,29,.92);
+  border-bottom:1px solid rgba(133,157,194,.22);
+  box-shadow:0 8px 30px rgba(0,0,0,.24);
+  backdrop-filter:blur(12px);
+}
+header h2{
+  font-family:'Cinzel',Georgia,serif;
+  font-size:23px;
+  letter-spacing:.08em;
+  font-weight:700;
+  background:linear-gradient(90deg,#fff4dc,#f2c66d 45%,#d6e7ff 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 0 18px rgba(238,191,98,.10);
+}
+
+.panel{
+  background:linear-gradient(180deg,rgba(18,27,41,.96),rgba(13,20,31,.97));
+  border:1px solid rgba(114,140,177,.22);
+  box-shadow:0 14px 34px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+input,select,button,.bulkUpdate textarea{
+  font-family:'Inter',system-ui,sans-serif;
+  background:linear-gradient(180deg,#1a2534,#151e2b);
+  border-color:#33465f;
+}
+button{
+  font-weight:600;
+  transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease,background .15s ease;
+}
+button:hover{
+  transform:translateY(-1px);
+  background:linear-gradient(180deg,#25364c,#1c2a3d);
+  border-color:#58769b;
+  box-shadow:0 6px 16px rgba(0,0,0,.2);
+}
+.tabs button.active{
+  color:#fff;
+  background:linear-gradient(135deg,#318cf0,#7566f5);
+  border-color:#7aaeff;
+  box-shadow:0 0 0 1px rgba(133,178,255,.15) inset,0 0 18px rgba(82,124,255,.24);
+}
+.actionBar .accent{
+  background:linear-gradient(135deg,#263c59,#1e2d43);
+}
+.actionBar .danger{
+  background:linear-gradient(180deg,rgba(78,29,44,.55),rgba(45,24,34,.55));
+  border-color:#87445b;
+  color:#ff9db9;
+}
+
+.statCard{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(145deg,#121b29,#0e1621);
+  border-color:#2c4058;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 8px 18px rgba(0,0,0,.15);
+}
+.statCard::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:linear-gradient(180deg,var(--blue),var(--violet));
+  opacity:.85;
+}
+.statCard:nth-child(2)::before{background:linear-gradient(180deg,var(--green),var(--cyan));}
+.statCard:nth-child(3)::before{background:linear-gradient(180deg,var(--violet),var(--pink));}
+.statCard:nth-child(4)::before{background:linear-gradient(180deg,var(--gold),#ff8e5e);}
+.statCard:nth-child(5)::before{background:linear-gradient(180deg,#8aa1be,#5a6f8c);}
+.statCard:nth-child(6)::before{background:linear-gradient(180deg,#ff7373,#ff4f92);}
+.statValue{font-weight:800;text-shadow:0 0 14px rgba(101,214,138,.12);}
+.statLabel{font-weight:600;letter-spacing:.1em;}
+
+.laneTitle{
+  font-family:'Cinzel',Georgia,serif;
+  font-size:16px;
+  letter-spacing:.16em;
+  color:#eef4ff;
+  text-shadow:0 0 15px rgba(126,169,255,.18);
+}
+
+.team{
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(160deg,rgba(19,29,44,.98),rgba(12,19,29,.98));
+  border:1px solid #3a4a62;
+  box-shadow:0 10px 24px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.025);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.team::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto 0;
+  height:2px;
+  background:var(--team-accent,#5da8ff);
+  box-shadow:0 0 14px var(--team-glow,rgba(93,168,255,.50));
+}
+.team:hover{transform:translateY(-1px);}
+.teamHeader{
+  font-family:'Cinzel',Georgia,serif;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.teamHeader span{font-family:'Inter',sans-serif;}
+
+/* Main battlefield: colored team borders, no extra decorative text */
+.lane.top .team:nth-child(1),.lane.bottom .team:nth-child(1){--team-accent:#ff6b9d;--team-glow:rgba(255,107,157,.55);border-color:#6f3650;}
+.lane.top .team:nth-child(2),.lane.bottom .team:nth-child(2){--team-accent:#f1b65b;--team-glow:rgba(241,182,91,.55);border-color:#6b5230;}
+.lane.top .team:nth-child(3),.lane.bottom .team:nth-child(3){--team-accent:#54d59a;--team-glow:rgba(84,213,154,.50);border-color:#315f4d;}
+.lane.mid .team:nth-child(6n+1){--team-accent:#5da8ff;--team-glow:rgba(93,168,255,.55);border-color:#365b87;}
+.lane.mid .team:nth-child(6n+2){--team-accent:#9d6cff;--team-glow:rgba(157,108,255,.55);border-color:#57427d;}
+.lane.mid .team:nth-child(6n+3){--team-accent:#ff6cae;--team-glow:rgba(255,108,174,.50);border-color:#733e5a;}
+.lane.mid .team:nth-child(6n+4){--team-accent:#eebf62;--team-glow:rgba(238,191,98,.50);border-color:#6f5833;}
+.lane.mid .team:nth-child(6n+5){--team-accent:#5ed5e8;--team-glow:rgba(94,213,232,.50);border-color:#326472;}
+.lane.mid .team:nth-child(6n+6){--team-accent:#59d89a;--team-glow:rgba(89,216,154,.50);border-color:#356952;}
+
+/* Sub battlefield cycles accent colors automatically as teams grow */
+.subTeamsFlat .team:nth-child(6n+1){--team-accent:#5da8ff;--team-glow:rgba(93,168,255,.55);border-color:#365b87;}
+.subTeamsFlat .team:nth-child(6n+2){--team-accent:#9d6cff;--team-glow:rgba(157,108,255,.55);border-color:#57427d;}
+.subTeamsFlat .team:nth-child(6n+3){--team-accent:#ff6cae;--team-glow:rgba(255,108,174,.50);border-color:#733e5a;}
+.subTeamsFlat .team:nth-child(6n+4){--team-accent:#eebf62;--team-glow:rgba(238,191,98,.50);border-color:#6f5833;}
+.subTeamsFlat .team:nth-child(6n+5){--team-accent:#59d89a;--team-glow:rgba(89,216,154,.50);border-color:#356952;}
+.subTeamsFlat .team:nth-child(6n+6){--team-accent:#5ed5e8;--team-glow:rgba(94,213,232,.50);border-color:#326472;}
+
+.team.healerMissing{
+  --team-accent:#ff5c75!important;
+  --team-glow:rgba(255,92,117,.60)!important;
+  border-color:#854155!important;
+  box-shadow:0 0 0 1px rgba(255,92,117,.10) inset,0 0 18px rgba(255,92,117,.09),0 10px 24px rgba(0,0,0,.22);
+}
+
+.slot{
+  background:linear-gradient(145deg,#192536,#16202e);
+  border-color:#2d4057;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.018);
+}
+.slot:hover{border-color:#415c7a;}
+.slotName{font-weight:700;color:#f7f9fd;}
+.slotGr{color:#b1bdcd;opacity:.92;}
+.slot .removeMini{
+  border-color:#3a4b62;
+  color:#98a8bc;
+  background:rgba(17,25,37,.72);
+  border-radius:999px;
+}
+.slot .removeMini:hover{color:#ff93ad;border-color:#7b4356;background:#2c1d26;}
+
+.member{
+  background:linear-gradient(145deg,#182536,#14202d);
+  border-color:#2e4057;
+}
+.member.sel{
+  outline:none;
+  border-color:#7386ff;
+  box-shadow:0 0 0 1px rgba(115,134,255,.35),0 0 16px rgba(115,134,255,.18);
+  background:linear-gradient(145deg,#1b2b43,#17263a);
+}
+
+.loginToggleBtn{
+  background:linear-gradient(145deg,#1a2637,#152130);
+  border-color:#3a4d68;
+}
+.loginPopover{
+  background:linear-gradient(180deg,#151f2e,#101722);
+  border-color:#34475f;
+}
+
+/* Attendance keeps the same clean visual language */
+.attendanceTable,.attendanceCard,.attendancePanel{font-family:'Inter',sans-serif;}
+
+@media(max-width:700px){
+  header h2{font-size:20px;letter-spacing:.06em;}
+  .panel{border-radius:16px;}
+  .team{border-radius:13px;}
+  .teamHeader{font-size:13px;}
+  .laneTitle{font-size:15px;}
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
