@@ -579,6 +579,10 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
   .builderToolbar .tabs,.builderToolbar .actionBar{width:100%;}
   .builderToolbar .actionBar{justify-content:flex-start;}
 }
+
+.viewerMode .officerOnly{opacity:.45;cursor:not-allowed;}
+.viewerMode .officerOnly:disabled{filter:grayscale(.2);}
+.viewOnlyBadge{font-size:11px;opacity:.75;margin-left:8px;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
@@ -661,10 +665,10 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
     <button id="subBtn" onclick="showTab('sub')">Sub Battlefield</button>
   </div>
   <div class="actionBar">
-    <button class="accent" onclick="autoFillCurrent()">⚡ Auto-fill Empty</button>
+    <button class="accent officerOnly" onclick="autoFillCurrent()">⚡ Auto-fill Empty</button>
     <button id="saveTeamImageBtn" onclick="saveTeamImage()">📸 Save Team Image</button>
     <button onclick="toggleDesktopPool()">☰ Hide/Show List</button>
-    <button id="clearCurrentBtn" class="danger" onclick="clearCurrent()">Clear Main</button>
+    <button id="clearCurrentBtn" class="danger officerOnly" onclick="clearCurrent()">Clear Main</button>
   </div>
 </div>
 
@@ -690,9 +694,9 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
     <select id="attendanceClass" onchange="renderAttendance()">
       <option value="all">All Classes</option>
     </select>
-    <button class="accent" onclick="markAllAttendance('present')">✓ Mark All Present</button>
-    <button onclick="markAllAttendance('absent')">✕ Mark All Absent</button>
-    <button onclick="clearAttendanceDate()">Clear This Date</button>
+    <button class="accent officerOnly" onclick="markAllAttendance('present')">✓ Mark All Present</button>
+    <button class="officerOnly" onclick="markAllAttendance('absent')">✕ Mark All Absent</button>
+    <button class="officerOnly" onclick="clearAttendanceDate()">Clear This Date</button>
   </div>
 
   <div class="attendanceStats">
@@ -727,14 +731,32 @@ function toggleLoginBox(){
   if(box) box.classList.toggle("open");
 }
 
+let isOfficer = false;
+
 function updateOfficerButton(isLoggedIn){
+  isOfficer = !!isLoggedIn;
   const btn = document.getElementById("loginToggleBtn");
-  if(btn) btn.textContent = isLoggedIn ? "👤 Officer ✓" : "👤 Officer";
+  if(btn) btn.textContent = isOfficer ? "👤 Officer ✓" : "👤 Officer";
+  document.body.classList.toggle("viewerMode", !isOfficer);
+  document.querySelectorAll(".officerOnly").forEach(el => { el.disabled = !isOfficer; });
+  render();
+}
+
+function requireOfficer(){
+  if(isOfficer) return true;
+  alert("View only. Please log in as an Officer to make changes.");
+  return false;
 }
 
 supabaseClient.auth.getSession().then(({data:{session}})=>{
   const el=document.getElementById("loginStatus");
-  if(el) el.textContent=session ? "Logged in" : "Not logged in";
+  if(el) el.textContent=session ? "Logged in" : "View only";
+  updateOfficerButton(!!session);
+});
+
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+  const el=document.getElementById("loginStatus");
+  if(el) el.textContent=session ? "Logged in" : "View only";
   updateOfficerButton(!!session);
 });
 async function officerLogin(){
@@ -759,7 +781,7 @@ async function officerLogin(){
 
 async function officerLogout(){
   await supabaseClient.auth.signOut();
-  document.getElementById("loginStatus").textContent = "Not logged in";
+  document.getElementById("loginStatus").textContent = "View only";
   updateOfficerButton(false);
   document.getElementById("loginBox")?.classList.remove("open");
 }
@@ -877,6 +899,7 @@ function reconcileSubRoster(){
 }
 
 async function save(){
+  if(!requireOfficer()) return false;
   reconcileSubRoster();
   localStorage.setItem("gcc", JSON.stringify(data));
   render();
@@ -891,7 +914,9 @@ async function save(){
   if(error){
     console.error("Supabase save error:", error);
     alert("Cloud save failed: " + error.message);
+    return false;
   }
+  return true;
 }
 async function loadCloudData(){
   const { data: row, error } = await supabaseClient
@@ -914,6 +939,7 @@ async function loadCloudData(){
   }
 }
 function saveMember(){
+  if(!requireOfficer()) return;
   const nameInput = document.getElementById("name");
   const classInput = document.getElementById("cls");
   const grInput = document.getElementById("gr");
@@ -944,6 +970,7 @@ function saveMember(){
   save();
 }
 function bulkUpdateRoster(){
+  if(!requireOfficer()) return;
   const text = document.getElementById("rosterPaste").value.trim();
 
   if(!text){
@@ -994,6 +1021,7 @@ function bulkUpdateRoster(){
   alert(`Roster updated!\n${updated} updated\n${added} new members added`);
   }
 function editMember(id){
+  if(!requireOfficer()) return;
   let m = data.members.find(x => x.id === id);
 
   document.getElementById("name").value = m.name;
@@ -1005,6 +1033,7 @@ function editMember(id){
 }
 
 function deleteMember(id){
+  if(!requireOfficer()) return;
 if(!confirm("Delete this member?"))return;
 
 data.members=data.members.filter(x=>x.id!==id);
@@ -1104,11 +1133,11 @@ function renderMembers(){
 
         <span class="memberStatus ${status.startsWith('MAIN') ? 'statusMain' : status.startsWith('SUB') ? 'statusSub' : 'statusNone'}">${status}</span>
 
-        <div class="memberBtns">
+        ${isOfficer ? `<div class="memberBtns">
           <button onclick="pick(${m.id})">Select</button>
           <button onclick="editMember(${m.id})">Edit</button>
           <button onclick="deleteMember(${m.id})">Delete</button>
-        </div>
+        </div>` : `<div class="viewOnlyBadge">🔒 View only</div>`}
       </div>
     `;
   }).join("");
@@ -1142,10 +1171,10 @@ function renderTeams(){
                 <div class="slotBottom">
                   <span class="slotName">${m.name}</span>
                   <span class="slotGr">${Number(m.gr||0).toLocaleString()} GR</span>
-                  <button class="removeMini" onclick="removeSlot(event,${teamIndex},${si})">✕</button>
+                  ${isOfficer ? `<button class="removeMini" onclick="removeSlot(event,${teamIndex},${si})">✕</button>` : ''}
                 </div>
               ` : `
-                <button class="slotEmpty" onclick="assign(${teamIndex},${si})">＋ Empty slot</button>
+                ${isOfficer ? `<button class="slotEmpty" onclick="assign(${teamIndex},${si})">＋ Empty slot</button>` : `<span class="slotEmpty" style="display:block;opacity:.45">Empty slot</span>`}
               `}
             </div>
           `;
@@ -1283,6 +1312,7 @@ function attendanceRecord(date=getAttendanceDate()){
 }
 
 async function setAttendance(memberId,status){
+  if(!requireOfficer()) return;
   const date = getAttendanceDate();
   const rec = attendanceRecord(date);
   if(status) rec[String(memberId)] = status;
@@ -1291,6 +1321,7 @@ async function setAttendance(memberId,status){
 }
 
 async function markAllAttendance(status){
+  if(!requireOfficer()) return;
   const label = status === "present" ? "Present" : "Absent";
   if(!confirm(`Mark all ${data.members.length} members as ${label} for ${getAttendanceDate()}?`)) return;
   const rec = attendanceRecord();
@@ -1299,6 +1330,7 @@ async function markAllAttendance(status){
 }
 
 async function clearAttendanceDate(){
+  if(!requireOfficer()) return;
   const date = getAttendanceDate();
   if(!confirm(`Clear all Guild League attendance for ${date}?`)) return;
   if(data.attendance) delete data.attendance[date];
@@ -1382,9 +1414,10 @@ function renderAttendance(){
         </div>
         <div class="attendanceStatus ${status}">${statusText}</div>
         <div class="attendanceActions">
+          ${isOfficer ? `
           <button class="presentBtn ${status==='present'?'active':''}" onclick="setAttendance(${m.id},'present')">✓ Present</button>
           <button class="absentBtn ${status==='absent'?'active':''}" onclick="setAttendance(${m.id},'absent')">✕ Absent</button>
-          <button onclick="setAttendance(${m.id},null)">Clear</button>
+          <button onclick="setAttendance(${m.id},null)">Clear</button>` : `<span class="viewOnlyBadge">🔒 View only</span>`}
         </div>
       </div>`;
   }).join("") || '<div style="padding:14px;opacity:.7">No members found.</div>';
@@ -1409,12 +1442,14 @@ function escapeHtml(value){
 }
 
 function pick(id){
+  if(!requireOfficer()) return;
   selected=id;
   render();
   if(window.innerWidth<=700) closeMemberPool();
 }
 
 function assign(t,s){
+  if(!requireOfficer()) return;
   if(!selected)return;
 
   const selectedId = selected;
@@ -1454,6 +1489,7 @@ function assign(t,s){
 }
 
 function removeSlot(e,t,s){
+  if(!requireOfficer()) return;
 e.stopPropagation();
 data[current][t][s]=null;
 save();
@@ -1469,6 +1505,7 @@ render();
 }
 
 function clearCurrent(){
+  if(!requireOfficer()) return;
   if(current === "main"){
     if(!confirm("Clear all 60 Main Battlefield slots?")) return;
     data.main = Array.from({length:12},()=>Array(5).fill(null));
@@ -1489,6 +1526,7 @@ function clearCurrent(){
 }
 
 function autoFillCurrent(){
+  if(!requireOfficer()) return;
   if(!confirm(`Auto-fill empty slots in ${current === "main" ? "Main" : "Sub"} Battlefield? Existing assignments will stay.`)) return;
 
   // SUB auto-fill: place everyone outside Main into Sub teams, highest GR first.
