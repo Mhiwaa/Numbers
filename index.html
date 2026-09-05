@@ -250,8 +250,9 @@ members.innerHTML=arr.map(m=>`
 <b>${m.name}</b><br>
 <small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
 <div class="memberBtns">
-<button onclick="event.stopPropagation();editMember(${m.id})">Edit</button>
-<button onclick="event.stopPropagation();deleteMember(${m.id})">Delete</button>
+<button onclick="pick(${m.id})">Select</button>
+<button onclick="editMember(${m.id})">Edit</button>
+<button onclick="deleteMember(${m.id})">Delete</button>
 </div>
 </div>
 `).join("");
