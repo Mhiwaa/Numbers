@@ -268,12 +268,12 @@ ${team.map((id,si)=>{
 let m=data.members.find(x=>x.id===id);
 
 return `
-<div class="slot" onclick="assign(${ti},${si})">
+<div class="slot">
 ${m?`
 <b>${m.name}</b><br>
 <small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
 <br><button onclick="removeSlot(event,${ti},${si})">Remove</button>
-`:`Tap to assign`}
+`:`<button onclick="assign(${ti},${si})">Assign here</button>`}
 </div>
 `;
 }).join("")}
