@@ -280,26 +280,39 @@ members.innerHTML=arr.map(m=>`
 }
 
 function renderTeams(){
-let field=data[current];
+  let field = data[current];
 
-teams.innerHTML=field.map((team,ti)=>`
-<div class="team">
-<b>${current==="main"?"Main":"Sub"} Team ${ti+1}</b>
-${team.map((id,si)=>{
-let m=data.members.find(x=>x.id===id);
+  teams.innerHTML = field.map((team,ti)=>{
+    const filled = team.filter(id =>
+      data.members.some(m => m.id === id)
+    ).length;
 
-return `
-<div class="slot">
-${m?`
-<b>${m.name}</b><br>
-<small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
-<br><button onclick="removeSlot(event,${ti},${si})">Remove</button>
-`:`<button onclick="assign(${ti},${si})">Assign here</button>`}
-</div>
-`;
-}).join("")}
-</div>
-`).join("");
+    return `
+      <div class="team">
+        <div class="teamHeader">
+          <b>${current==="main" ? "Main" : "Sub"} Team ${ti+1}</b>
+          <span>${filled}/5</span>
+        </div>
+
+        ${team.map((id,si)=>{
+          let m = data.members.find(x => x.id === id);
+
+          return `
+            <div class="slot">
+              ${m ? `
+                <b>${m.name}</b><br>
+                <small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
+                <br>
+                <button onclick="removeSlot(event,${ti},${si})">Remove</button>
+              ` : `
+                <button onclick="assign(${ti},${si})">Assign here</button>
+              `}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }).join("");
 }
 
 function render(){
