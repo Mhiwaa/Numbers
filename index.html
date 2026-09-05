@@ -723,16 +723,25 @@ button:hover{
 }
 .teamHeader span{font-family:'Inter',sans-serif;}
 
-/* Main battlefield: colored team borders, no extra decorative text */
-.lane.top .team:nth-child(1),.lane.bottom .team:nth-child(1){--team-accent:#ff6b9d;--team-glow:rgba(255,107,157,.55);border-color:#6f3650;}
-.lane.top .team:nth-child(2),.lane.bottom .team:nth-child(2){--team-accent:#f1b65b;--team-glow:rgba(241,182,91,.55);border-color:#6b5230;}
-.lane.top .team:nth-child(3),.lane.bottom .team:nth-child(3){--team-accent:#54d59a;--team-glow:rgba(84,213,154,.50);border-color:#315f4d;}
-.lane.mid .team:nth-child(6n+1){--team-accent:#5da8ff;--team-glow:rgba(93,168,255,.55);border-color:#365b87;}
-.lane.mid .team:nth-child(6n+2){--team-accent:#9d6cff;--team-glow:rgba(157,108,255,.55);border-color:#57427d;}
-.lane.mid .team:nth-child(6n+3){--team-accent:#ff6cae;--team-glow:rgba(255,108,174,.50);border-color:#733e5a;}
-.lane.mid .team:nth-child(6n+4){--team-accent:#eebf62;--team-glow:rgba(238,191,98,.50);border-color:#6f5833;}
-.lane.mid .team:nth-child(6n+5){--team-accent:#5ed5e8;--team-glow:rgba(94,213,232,.50);border-color:#326472;}
-.lane.mid .team:nth-child(6n+6){--team-accent:#59d89a;--team-glow:rgba(89,216,154,.50);border-color:#356952;}
+/* Main battlefield: one strong glowing color per lane */
+.lane.top .team{
+  --team-accent:#5da8ff;
+  --team-glow:rgba(93,168,255,.85);
+  border-color:#5da8ff;
+  box-shadow:0 0 10px rgba(93,168,255,.38),0 0 22px rgba(93,168,255,.18),inset 0 0 12px rgba(93,168,255,.06);
+}
+.lane.mid .team{
+  --team-accent:#ff62b0;
+  --team-glow:rgba(255,98,176,.90);
+  border-color:#ff62b0;
+  box-shadow:0 0 11px rgba(255,98,176,.42),0 0 24px rgba(255,98,176,.20),inset 0 0 12px rgba(255,98,176,.07);
+}
+.lane.bottom .team{
+  --team-accent:#9b72ff;
+  --team-glow:rgba(155,114,255,.88);
+  border-color:#9b72ff;
+  box-shadow:0 0 10px rgba(155,114,255,.40),0 0 22px rgba(155,114,255,.18),inset 0 0 12px rgba(155,114,255,.06);
+}
 
 /* Sub battlefield cycles accent colors automatically as teams grow */
 .subTeamsFlat .team:nth-child(6n+1){--team-accent:#5da8ff;--team-glow:rgba(93,168,255,.55);border-color:#365b87;}
