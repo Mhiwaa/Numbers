@@ -580,6 +580,7 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
   .builderToolbar .actionBar{justify-content:flex-start;}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -661,7 +662,7 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
   </div>
   <div class="actionBar">
     <button class="accent" onclick="autoFillCurrent()">⚡ Auto-fill Empty</button>
-    <button onclick="printOrShare()">🖨 Print/Share</button>
+    <button id="saveTeamImageBtn" onclick="saveTeamImage()">📸 Save Team Image</button>
     <button onclick="toggleDesktopPool()">☰ Hide/Show List</button>
     <button id="clearCurrentBtn" class="danger" onclick="clearCurrent()">Clear Main</button>
   </div>
@@ -1547,15 +1548,62 @@ function autoFillCurrent(){
   save();
 }
 
-function printOrShare(){
-  if(navigator.share){
-    navigator.share({
-      title:"Numbers",
-      text:`${current === "main" ? "Main" : "Sub"} Battlefield lineup`,
-      url:location.href
-    }).catch(()=>{});
-  }else{
-    window.print();
+function safeFileName(text){
+  return text.replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "");
+}
+
+async function saveTeamImage(){
+  const btn = document.getElementById("saveTeamImageBtn");
+  const teams = document.getElementById("teams");
+  if(!teams || typeof html2canvas === "undefined"){
+    alert("Image tool is still loading. Please try again in a moment.");
+    return;
+  }
+
+  const oldText = btn ? btn.textContent : "";
+  if(btn){ btn.disabled = true; btn.textContent = "📸 Creating image…"; }
+
+  try{
+    const canvas = await html2canvas(teams, {
+      backgroundColor: "#0b0f16",
+      scale: Math.min(2, window.devicePixelRatio || 1.5),
+      useCORS: true,
+      logging: false,
+      width: teams.scrollWidth,
+      height: teams.scrollHeight,
+      windowWidth: Math.max(document.documentElement.clientWidth, teams.scrollWidth),
+      windowHeight: Math.max(document.documentElement.clientHeight, teams.scrollHeight)
+    });
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png", 1));
+    if(!blob) throw new Error("Could not create PNG");
+
+    const label = current === "main" ? "Main-Battlefield" : "Sub-Battlefield";
+    const filename = safeFileName(`Numbers-${label}`) + ".png";
+    const file = new File([blob], filename, {type:"image/png"});
+
+    if(navigator.canShare && navigator.canShare({files:[file]}) && navigator.share){
+      try{
+        await navigator.share({files:[file], title:"Numbers", text:`${current === "main" ? "Main" : "Sub"} Battlefield lineup`});
+        return;
+      }catch(err){
+        if(err && err.name === "AbortError") return;
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }catch(err){
+    console.error("Save image error:", err);
+    alert("Hindi nagawa ang team image. Try ulit after refresh.");
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = oldText || "📸 Save Team Image"; }
   }
 }
 
