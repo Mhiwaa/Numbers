@@ -483,28 +483,9 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
   <button class="closeRosterBtn" onclick="closeMemberPool()" aria-label="Close Member Pool">✕</button>
 </div>
 
-<div class="controls">
-<input id="name" placeholder="IGN">
-
-<select id="cls">
-<option>Lord Knight</option>
-<option>Paladin</option>
-<option>High Wizard</option>
-<option>High Priest</option>
-<option>Sniper</option>
-<option>Assassin Cross</option>
-<option>Whitesmith</option>
-<option>Nightwatch</option>
-<option>Alithea</option>
-<option>Champion</option>
-</select>
-
-<input id="gr" type="number" placeholder="Gear Rating">
-<button onclick="saveMember()">Add Member</button>
-</div>
-<div class="bulkUpdate">
-  <textarea id="rosterPaste" placeholder="Paste Class | IGN | Gear Rating from Google Sheets"></textarea>
-  <button onclick="bulkUpdateRoster()">Update Roster</button>
+<div class="controls" style="grid-template-columns:1fr;">
+  <button class="accent" onclick="syncRosterFromSheet(true)">↻ Sync Google Sheet</button>
+  <small id="sheetSyncStatus" style="opacity:.75">Roster source: Google Sheet</small>
 </div>
 <div class="controls">
 <input id="search" placeholder="Search IGN" oninput="render()">
@@ -576,6 +557,7 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
 <script>
 const SUPABASE_URL = "https://wgiibguqueuwetrmxixa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_UJR0HaAeyOmv0-lL5yFMYg_iXyH3BCN";
+const ROSTER_API_URL = "https://script.google.com/macros/s/AKfycbzXfLuXPvFPIKLU_q_YxUgThCcEEwBjqZ3DDgpcPK2TVJ3sWBvQTBjmI2TcIWPAy-skdg/exec";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -621,6 +603,65 @@ let editing=null;
 let current="main";
 let memberViewFilter="all";
 
+let rosterSyncInProgress = false;
+
+function normalizeClassName(cls){
+  const c = String(cls || "").trim();
+  if(c.toLowerCase() === "night watch") return "Nightwatch";
+  return c;
+}
+
+function stableMemberId(name){
+  // Deterministic positive integer from IGN, so assignments survive refreshes/devices.
+  let h = 2166136261;
+  const text = String(name || "").trim().toLowerCase();
+  for(let i=0;i<text.length;i++){
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) + 1000000000;
+}
+
+async function syncRosterFromSheet(showMessage=false){
+  if(rosterSyncInProgress) return;
+  rosterSyncInProgress = true;
+  const status = document.getElementById("sheetSyncStatus");
+  if(status) status.textContent = "Syncing Google Sheet…";
+
+  try{
+    const res = await fetch(ROSTER_API_URL, { cache: "no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const sheetMembers = await res.json();
+    if(!Array.isArray(sheetMembers)) throw new Error("Invalid roster response");
+
+    const oldByName = new Map(data.members.map(m => [String(m.name).trim().toLowerCase(), m]));
+    const newMembers = sheetMembers
+      .filter(x => x && x.ign && x.class)
+      .map(x => {
+        const key = String(x.ign).trim().toLowerCase();
+        const old = oldByName.get(key);
+        return {
+          id: old ? old.id : stableMemberId(x.ign),
+          name: String(x.ign).trim(),
+          cls: normalizeClassName(x.class),
+          gr: Number(x.gr) || 0
+        };
+      });
+
+    data.members = newMembers;
+    localStorage.setItem("gcc", JSON.stringify(data));
+    render();
+    if(status) status.textContent = `Google Sheet synced • ${newMembers.length} members`;
+    if(showMessage) alert(`Google Sheet synced!\n${newMembers.length} members loaded.`);
+  }catch(err){
+    console.error("Roster sync error:", err);
+    if(status) status.textContent = "Sheet sync failed • using cached roster";
+    if(showMessage) alert("Google Sheet sync failed. Cached roster is still available.");
+  }finally{
+    rosterSyncInProgress = false;
+  }
+}
+
 async function save(){
   localStorage.setItem("gcc", JSON.stringify(data));
   render();
@@ -653,6 +694,7 @@ async function loadCloudData(){
     data = row.data;
     localStorage.setItem("gcc", JSON.stringify(data));
     render();
+    syncRosterFromSheet(false);
   }
 }
 function saveMember(){
@@ -1066,9 +1108,10 @@ function closeMemberPool(){
 // Show cached/local data immediately so the page feels instant.
 render();
 
-function startCloudSync(){
-  // Refresh from Supabase after the first paint.
-  loadCloudData();
+async function startCloudSync(){
+  // Load team assignments first, then refresh roster from Google Sheet.
+  await loadCloudData();
+  await syncRosterFromSheet(false);
 
   // Keep other officers/devices in sync in realtime.
   supabaseClient
@@ -1091,6 +1134,7 @@ function startCloudSync(){
             data = payload.new.data;
             localStorage.setItem("gcc", incoming);
             render();
+            syncRosterFromSheet(false);
           }
         }
       }
