@@ -163,37 +163,45 @@ async function save(){
   }
 }
 function saveMember(){
-let n=name.value.trim();
-let c=cls.value;
-let g=Number(gr.value)||0;
+  const nameInput = document.getElementById("name");
+  const classInput = document.getElementById("cls");
+  const grInput = document.getElementById("gr");
 
-if(!n)return alert("Enter IGN");
+  let n = nameInput.value.trim();
+  let c = classInput.value;
+  let g = Number(grInput.value) || 0;
 
-if(editing){
-let m=data.members.find(x=>x.id===editing);
-m.name=n;m.cls=c;m.gr=g;
-editing=null;
-}else{
-data.members.push({
-id:Date.now()+Math.random(),
-name:n,
-cls:c,
-gr:g
-});
-}
+  if(!n) return alert("Enter IGN");
 
-name.value="";
-gr.value="";
-save();
+  if(editing){
+    let m = data.members.find(x => x.id === editing);
+    m.name = n;
+    m.cls = c;
+    m.gr = g;
+    editing = null;
+  } else {
+    data.members.push({
+      id: Date.now() + Math.random(),
+      name: n,
+      cls: c,
+      gr: g
+    });
+  }
+
+  nameInput.value = "";
+  grInput.value = "";
+  save();
 }
 
 function editMember(id){
-let m=data.members.find(x=>x.id===id);
-name.value=m.name;
-cls.value=m.cls;
-gr.value=m.gr;
-editing=id;
-window.scrollTo({top:0,behavior:"smooth"});
+  let m = data.members.find(x => x.id === id);
+
+  document.getElementById("name").value = m.name;
+  document.getElementById("cls").value = m.cls;
+  document.getElementById("gr").value = m.gr;
+
+  editing = id;
+  window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function deleteMember(id){
