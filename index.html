@@ -246,12 +246,12 @@ return b.gr-a.gr;
 });
 
 members.innerHTML=arr.map(m=>`
-<div class="member ${selected===m.id?'sel':''}">
-<b onclick="pick('${m.id}')">${m.name}</b><br>
+<div class="member ${selected===m.id?'sel':''}" onclick="pick(${m.id})">
+<b>${m.name}</b><br>
 <small>${m.cls} • GR ${m.gr.toLocaleString()}</small>
 <div class="memberBtns">
-<button onclick="editMember('${m.id}')">Edit</button>
-<button onclick="deleteMember('${m.id}')">Delete</button>
+<button onclick="event.stopPropagation();editMember(${m.id})">Edit</button>
+<button onclick="event.stopPropagation();deleteMember(${m.id})">Delete</button>
 </div>
 </div>
 `).join("");
