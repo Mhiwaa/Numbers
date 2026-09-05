@@ -482,6 +482,41 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
 @media(max-width:420px){
   .teams{grid-template-columns:220px 450px 220px;}
 }
+
+
+/* Guild League Attendance */
+.moduleTabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.moduleTabs button{padding:8px 12px;}
+.moduleTabs button.active{background:#2f8cff;border-color:#2f8cff;color:white;}
+.hiddenView{display:none!important;}
+body.attendanceMode .wrap{grid-template-columns:minmax(0,1fr);}
+body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attendanceMode .drawerBackdrop{display:none!important;}
+.attendanceToolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;}
+.attendanceToolbar input,.attendanceToolbar button{min-height:36px;}
+.attendanceStats{display:grid;grid-template-columns:repeat(5,minmax(100px,1fr));gap:8px;margin:10px 0;}
+.attendanceList{border:1px solid #263245;border-radius:10px;overflow:hidden;}
+.attendanceRow{display:grid;grid-template-columns:minmax(180px,1.4fr) 150px 220px;gap:8px;align-items:center;padding:9px 10px;border-bottom:1px solid #223044;}
+.attendanceRow:last-child{border-bottom:0;}
+.attendanceMember small{display:block;opacity:.65;margin-top:2px;}
+.attendanceStatus{font-size:12px;font-weight:700;}
+.attendanceStatus.present{color:#5ee3a2;}
+.attendanceStatus.absent{color:#ff7676;}
+.attendanceStatus.unmarked{color:#9aa8bb;}
+.attendanceActions{display:flex;gap:6px;justify-content:flex-end;}
+.attendanceActions button{padding:6px 9px;font-size:12px;}
+.attendanceActions .presentBtn.active{background:#155d43;border-color:#2dcf8b;}
+.attendanceActions .absentBtn.active{background:#6a2630;border-color:#ff6577;}
+.missedSummary{margin-top:14px;}
+.missedGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px;}
+.missedItem{background:#0f1722;border:1px solid #243247;border-radius:8px;padding:8px;display:flex;justify-content:space-between;gap:8px;}
+.missedItem strong{font-size:12px;}
+.missedItem span{font-size:12px;color:#ff9b9b;}
+@media(max-width:800px){
+  .attendanceStats{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .attendanceRow{grid-template-columns:minmax(0,1fr);}
+  .attendanceActions{justify-content:flex-start;}
+}
+
 </style>
 </head>
 <body>
@@ -537,6 +572,12 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
 </div>
 
 <div class="panel">
+<div class="moduleTabs">
+  <button id="builderModuleBtn" class="active" onclick="showModule('builder')">⚔️ Team Builder</button>
+  <button id="attendanceModuleBtn" onclick="showModule('attendance')">📋 Guild League Attendance</button>
+</div>
+
+<div id="teamBuilderView">
 <div class="tabs">
 <button id="mainBtn" class="active" onclick="showTab('main')">Main Battlefield</button>
 <button id="subBtn" onclick="showTab('sub')">Sub Battlefield</button>
@@ -568,6 +609,36 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
 </div>
 
 <div class="battlefieldScroll"><div class="teams" id="teams"></div></div>
+</div>
+
+<div id="attendanceView" class="hiddenView">
+  <h3>📋 Guild League Attendance</h3>
+  <div class="attendanceToolbar">
+    <button onclick="changeAttendanceDate(-7)">← Previous</button>
+    <input id="attendanceDate" type="date" onchange="renderAttendance()">
+    <button onclick="changeAttendanceDate(7)">Next →</button>
+    <input id="attendanceSearch" placeholder="Search member" oninput="renderAttendance()">
+    <button class="accent" onclick="markAllAttendance('present')">✓ Mark All Present</button>
+    <button onclick="markAllAttendance('absent')">✕ Mark All Absent</button>
+    <button onclick="clearAttendanceDate()">Clear This Date</button>
+  </div>
+
+  <div class="attendanceStats">
+    <div class="statCard"><span class="statValue" id="attMembers">0</span><span class="statLabel">Members</span></div>
+    <div class="statCard"><span class="statValue" id="attPresent">0</span><span class="statLabel">Present</span></div>
+    <div class="statCard"><span class="statValue" id="attAbsent">0</span><span class="statLabel">Absent</span></div>
+    <div class="statCard"><span class="statValue" id="attUnmarked">0</span><span class="statLabel">Unmarked</span></div>
+    <div class="statCard"><span class="statValue" id="attPerfect">0</span><span class="statLabel">Perfect Attendance</span></div>
+  </div>
+
+  <div class="attendanceList" id="attendanceList"></div>
+
+  <div class="missedSummary">
+    <h3>Missed Guild League Summary</h3>
+    <small style="opacity:.7">Counts recorded absences across all saved Guild League dates.</small>
+    <div class="missedGrid" id="missedGrid"></div>
+  </div>
+</div>
 </div>
 </div>
 
@@ -620,6 +691,9 @@ let selected=null;
 let editing=null;
 let current="main";
 let memberViewFilter="all";
+let activeModule="builder";
+
+if(!data.attendance || typeof data.attendance !== "object") data.attendance = {};
 
 let rosterSyncInProgress = false;
 
@@ -1058,9 +1132,181 @@ function renderStats(){
 }
 
 function render(){
-renderMembers();
-renderTeams();
-renderStats();
+  renderMembers();
+  renderTeams();
+  renderStats();
+  if(activeModule === "attendance") renderAttendance();
+}
+
+function showModule(module){
+  activeModule = module;
+  const builderView = document.getElementById("teamBuilderView");
+  const attendanceView = document.getElementById("attendanceView");
+  const builderBtn = document.getElementById("builderModuleBtn");
+  const attendanceBtn = document.getElementById("attendanceModuleBtn");
+
+  const isAttendance = module === "attendance";
+  document.body.classList.toggle("attendanceMode", isAttendance);
+  builderView?.classList.toggle("hiddenView", isAttendance);
+  attendanceView?.classList.toggle("hiddenView", !isAttendance);
+  builderBtn?.classList.toggle("active", !isAttendance);
+  attendanceBtn?.classList.toggle("active", isAttendance);
+
+  if(isAttendance){
+    ensureAttendanceDate();
+    renderAttendance();
+  }
+}
+
+function localDateISO(d=new Date()){
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const y = x.getFullYear();
+  const m = String(x.getMonth()+1).padStart(2,"0");
+  const day = String(x.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function ensureAttendanceDate(){
+  const el = document.getElementById("attendanceDate");
+  if(el && !el.value) el.value = localDateISO();
+}
+
+function getAttendanceDate(){
+  ensureAttendanceDate();
+  return document.getElementById("attendanceDate")?.value || localDateISO();
+}
+
+function changeAttendanceDate(days){
+  const el = document.getElementById("attendanceDate");
+  ensureAttendanceDate();
+  const [y,m,d] = el.value.split("-").map(Number);
+  const dt = new Date(y,m-1,d);
+  dt.setDate(dt.getDate()+days);
+  el.value = localDateISO(dt);
+  renderAttendance();
+}
+
+function attendanceRecord(date=getAttendanceDate()){
+  if(!data.attendance || typeof data.attendance !== "object") data.attendance = {};
+  if(!data.attendance[date] || typeof data.attendance[date] !== "object") data.attendance[date] = {};
+  return data.attendance[date];
+}
+
+async function setAttendance(memberId,status){
+  const date = getAttendanceDate();
+  const rec = attendanceRecord(date);
+  if(status) rec[String(memberId)] = status;
+  else delete rec[String(memberId)];
+  await save();
+}
+
+async function markAllAttendance(status){
+  const label = status === "present" ? "Present" : "Absent";
+  if(!confirm(`Mark all ${data.members.length} members as ${label} for ${getAttendanceDate()}?`)) return;
+  const rec = attendanceRecord();
+  data.members.forEach(m => rec[String(m.id)] = status);
+  await save();
+}
+
+async function clearAttendanceDate(){
+  const date = getAttendanceDate();
+  if(!confirm(`Clear all Guild League attendance for ${date}?`)) return;
+  if(data.attendance) delete data.attendance[date];
+  await save();
+}
+
+function attendanceHistoryStats(){
+  const dates = Object.keys(data.attendance || {}).sort();
+  const absentCounts = new Map(data.members.map(m => [String(m.id),0]));
+  const presentCounts = new Map(data.members.map(m => [String(m.id),0]));
+  const markedCounts = new Map(data.members.map(m => [String(m.id),0]));
+
+  dates.forEach(date => {
+    const rec = data.attendance[date] || {};
+    data.members.forEach(m => {
+      const v = rec[String(m.id)];
+      if(v === "present"){
+        presentCounts.set(String(m.id), (presentCounts.get(String(m.id))||0)+1);
+        markedCounts.set(String(m.id), (markedCounts.get(String(m.id))||0)+1);
+      }else if(v === "absent"){
+        absentCounts.set(String(m.id), (absentCounts.get(String(m.id))||0)+1);
+        markedCounts.set(String(m.id), (markedCounts.get(String(m.id))||0)+1);
+      }
+    });
+  });
+
+  const perfect = data.members.filter(m => {
+    const id = String(m.id);
+    return (markedCounts.get(id)||0) > 0 && (absentCounts.get(id)||0) === 0;
+  }).length;
+
+  return { dates, absentCounts, presentCounts, markedCounts, perfect };
+}
+
+function renderAttendance(){
+  const list = document.getElementById("attendanceList");
+  const missedGrid = document.getElementById("missedGrid");
+  if(!list || !missedGrid) return;
+
+  ensureAttendanceDate();
+  const date = getAttendanceDate();
+  const rec = (data.attendance && data.attendance[date]) || {};
+  const q = (document.getElementById("attendanceSearch")?.value || "").trim().toLowerCase();
+  const history = attendanceHistoryStats();
+
+  let present=0, absent=0;
+  data.members.forEach(m => {
+    const v = rec[String(m.id)];
+    if(v === "present") present++;
+    else if(v === "absent") absent++;
+  });
+  const unmarked = Math.max(0, data.members.length - present - absent);
+
+  document.getElementById("attMembers").textContent = data.members.length;
+  document.getElementById("attPresent").textContent = present;
+  document.getElementById("attAbsent").textContent = absent;
+  document.getElementById("attUnmarked").textContent = unmarked;
+  document.getElementById("attPerfect").textContent = history.perfect;
+
+  const rows = [...data.members]
+    .filter(m => !q || m.name.toLowerCase().includes(q) || m.cls.toLowerCase().includes(q))
+    .sort((a,b) => a.name.localeCompare(b.name));
+
+  list.innerHTML = rows.map(m => {
+    const status = rec[String(m.id)] || "unmarked";
+    const statusText = status === "present" ? "PRESENT" : status === "absent" ? "ABSENT" : "UNMARKED";
+    return `
+      <div class="attendanceRow">
+        <div class="attendanceMember">
+          <strong>${escapeHtml(m.name)}</strong>
+          <small><span class="class-${m.cls.replaceAll(' ','-')}">${escapeHtml(m.cls)}</span> • ${Number(m.gr||0).toLocaleString()} GR</small>
+        </div>
+        <div class="attendanceStatus ${status}">${statusText}</div>
+        <div class="attendanceActions">
+          <button class="presentBtn ${status==='present'?'active':''}" onclick="setAttendance(${m.id},'present')">✓ Present</button>
+          <button class="absentBtn ${status==='absent'?'active':''}" onclick="setAttendance(${m.id},'absent')">✕ Absent</button>
+          <button onclick="setAttendance(${m.id},null)">Clear</button>
+        </div>
+      </div>`;
+  }).join("") || '<div style="padding:14px;opacity:.7">No members found.</div>';
+
+  const missed = data.members
+    .map(m => ({m,count:history.absentCounts.get(String(m.id))||0}))
+    .filter(x => x.count > 0)
+    .sort((a,b) => b.count-a.count || a.m.name.localeCompare(b.m.name));
+
+  missedGrid.innerHTML = missed.length
+    ? missed.map(x => `<div class="missedItem"><strong>${escapeHtml(x.m.name)}</strong><span>${x.count} missed</span></div>`).join("")
+    : '<div style="opacity:.7;padding:8px">No recorded absences yet.</div>';
+}
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
 function pick(id){
