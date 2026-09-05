@@ -900,20 +900,39 @@ function pick(id){
 function assign(t,s){
   if(!selected)return;
 
-  const existingId = data[current][t][s];
-  const existingMember = data.members.find(m => m.id === existingId);
-  if(existingId && existingMember)return;
+  const selectedId = selected;
+  const targetId = data[current][t][s];
+  const targetMember = data.members.find(m => m.id === targetId);
 
+  // Find where the selected member is currently assigned.
+  let oldSpot = null;
   ["main","sub"].forEach(field => {
-    data[field].forEach(team => {
-      for(let i=0;i<team.length;i++){
-        if(team[i]===selected) team[i]=null;
-      }
+    data[field].forEach((team,ti) => {
+      team.forEach((id,si) => {
+        if(id === selectedId) oldSpot = { field, ti, si };
+      });
     });
   });
 
-  data[current][t][s]=selected;
-  selected=null;
+  // If target is occupied, swap only when selected member already has a slot.
+  // An unassigned member cannot overwrite an occupied slot by accident.
+  if(targetId && targetMember){
+    if(!oldSpot || targetId === selectedId) return;
+
+    data[oldSpot.field][oldSpot.ti][oldSpot.si] = targetId;
+    data[current][t][s] = selectedId;
+    selected = null;
+    save();
+    return;
+  }
+
+  // Normal move: clear old assignment first, then place in target slot.
+  if(oldSpot){
+    data[oldSpot.field][oldSpot.ti][oldSpot.si] = null;
+  }
+
+  data[current][t][s] = selectedId;
+  selected = null;
   save();
 }
 
