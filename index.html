@@ -31,7 +31,7 @@ h2,h3{margin:8px 0;}
   max-width:1500px;
   margin:auto;
   display:grid;
-  grid-template-columns:340px minmax(0,1fr);
+  grid-template-columns:270px minmax(0,1fr);
   gap:12px;
   align-items:start;
 }
@@ -46,8 +46,8 @@ h2,h3{margin:8px 0;}
 
 #rosterPanel{
   position:sticky;
-  top:82px;
-  max-height:calc(100vh - 96px);
+  top:74px;
+  max-height:calc(100vh - 86px);
   display:flex;
   flex-direction:column;
   margin-bottom:0;
@@ -69,7 +69,7 @@ h2,h3{margin:8px 0;}
 .controls{
   display:flex;
   flex-wrap:wrap;
-  gap:7px;
+  gap:5px;
   align-items:center;
 }
 
@@ -83,13 +83,13 @@ h2,h3{margin:8px 0;}
 .bulkUpdate textarea{
   flex:1;
   min-width:0;
-  min-height:62px;
+  min-height:48px;
   resize:vertical;
   background:#1a2330;
   color:#f5f7fb;
   border:1px solid #334155;
   border-radius:8px;
-  padding:9px 11px;
+  padding:7px 8px;
 }
 
 input,select,button{
@@ -97,7 +97,8 @@ input,select,button{
   color:#f5f7fb;
   border:1px solid #334155;
   border-radius:8px;
-  padding:9px 11px;
+  padding:7px 8px;
+  font-size:12px;
 }
 
 input::placeholder,.bulkUpdate textarea::placeholder{color:#718096;}
@@ -107,8 +108,8 @@ button:hover{background:#243247;}
 #members{
   display:flex;
   flex-direction:column;
-  gap:4px;
-  max-height:calc(100vh - 390px);
+  gap:3px;
+  max-height:calc(100vh - 320px);
   min-height:180px;
   overflow-y:auto;
   padding:6px 2px;
@@ -121,7 +122,7 @@ button:hover{background:#243247;}
   background:#182230;
   border:1px solid #2d3b50;
   border-radius:7px;
-  padding:7px 8px;
+  padding:5px 6px;
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
   align-items:center;
@@ -146,7 +147,7 @@ button:hover{background:#243247;}
 .class-Champion{color:#ffb86c!important;}
 
 .memberBtns{display:flex;gap:3px;margin-top:0;}
-.memberBtns button{padding:5px 8px;font-size:11px;}
+.memberBtns button{padding:4px 6px;font-size:10px;}
 
 .memberStatus{
   display:inline-block;
@@ -245,6 +246,19 @@ button:hover{background:#243247;}
 .slotName{font-size:12px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .slotEmpty{grid-column:1 / -1;width:100%;text-align:left;}
 .slot .removeMini{padding:3px 5px;margin:0;font-size:10px;}
+
+@media(min-width:701px){
+  #rosterPanel h3{font-size:15px;}
+  #rosterPanel .controls{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+  #rosterPanel .controls input,
+  #rosterPanel .controls select,
+  #rosterPanel .controls button{width:100%;min-width:0;}
+  #rosterPanel .bulkUpdate{display:grid;grid-template-columns:1fr;gap:5px;margin:5px 0;}
+  #rosterPanel .bulkUpdate textarea{width:100%;min-height:46px;}
+  #rosterPanel .member{font-size:12px;}
+  #rosterPanel .member small{font-size:10px;}
+  #rosterPanel .memberStatus{font-size:9px;padding:2px 5px;}
+}
 
 @media(max-width:700px){
   header{padding:10px 12px;}
