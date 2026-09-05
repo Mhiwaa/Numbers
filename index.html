@@ -190,8 +190,8 @@ button:hover{background:#243247;}
 .actionBar .danger{border-color:#71343d;color:#ff9aa6;}
 .actionBar .accent{background:#2b3d57;}
 
-.team.healerMissing{border-color:#7a3f49;box-shadow:0 0 0 1px rgba(255,118,118,.12) inset;}
-.healerBadge{font-size:9px;color:#ff9aa6;font-weight:700;margin-left:6px;}
+.team.healerMissing{border-color:#ff7676;box-shadow:0 0 0 1px rgba(255,118,118,.18) inset;}
+.healerBadge{font-size:9px;color:#ff9aa6;font-weight:800;margin-left:6px;white-space:nowrap;}
 .teamMeta{display:flex;align-items:center;gap:6px;}
 
 body.poolHiddenDesktop .wrap{grid-template-columns:minmax(0,1fr);}
@@ -537,7 +537,7 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
   <div class="statCard"><span class="statValue" id="statMembers">0</span><span class="statLabel">Members</span></div>
   <div class="statCard"><span class="statValue" id="statAssigned">0/60</span><span class="statLabel">Assigned</span></div>
   <div class="statCard"><span class="statValue" id="statFullTeams">0/12</span><span class="statLabel">Full Teams</span></div>
-  <div class="statCard" id="statNoHealerCard"><span class="statValue" id="statNoHealer">0</span><span class="statLabel">Teams Without Healer</span></div>
+  <div class="statCard" id="statNoHealerCard"><span class="statValue" id="statNoHealer">0</span><span class="statLabel">No Healer</span></div>
 </div>
 
 <div id="loginBox" class="panel">
@@ -812,16 +812,24 @@ return new Set([
 ].filter(Boolean));
 }
 
+function teamLocation(teamIndex){
+  if(teamIndex <= 2) return { lane: "TOP", number: teamIndex + 1 };
+  if(teamIndex <= 8) return { lane: "MID", number: teamIndex - 2 };
+  return { lane: "BOTTOM", number: teamIndex - 8 };
+}
+
 function memberStatus(id){
   for(let t = 0; t < data.main.length; t++){
     if(data.main[t].includes(id)){
-      return `MAIN T${t + 1}`;
+      const loc = teamLocation(t);
+      return `MAIN • ${loc.lane} T${loc.number}`;
     }
   }
 
   for(let t = 0; t < data.sub.length; t++){
     if(data.sub[t].includes(id)){
-      return `SUB T${t + 1}`;
+      const loc = teamLocation(t);
+      return `SUB • ${loc.lane} T${loc.number}`;
     }
   }
 
@@ -898,16 +906,18 @@ function renderTeams(){
     { name: "BOTTOM", cls: "bottom", teams: [9,10,11] }
   ];
 
-  function teamCard(teamIndex, laneTeamNumber){
+  function teamCard(teamIndex, laneTeamNumber, laneName){
     const team = field[teamIndex];
     const teamMembers = team.map(id => data.members.find(m => m.id === id)).filter(Boolean);
     const filled = teamMembers.length;
-    const missingHealer = filled > 0 && !teamMembers.some(m => m.cls === "High Priest");
+    const hasHealer = teamMembers.some(m => m.cls === "High Priest");
+    const missingHealer = filled > 0 && !hasHealer;
+    const teamLabel = `${current.toUpperCase()} • ${laneName} T${laneTeamNumber}`;
 
     return `
       <div class="team ${missingHealer ? 'healerMissing' : ''}">
         <div class="teamHeader">
-          <b>Team ${laneTeamNumber}${missingHealer ? '<span class="healerBadge">⚠ NO HP</span>' : ''}</b>
+          <b title="${teamLabel}">Team ${laneTeamNumber}${missingHealer ? '<span class="healerBadge">⚠ NO HEALER</span>' : ''}</b>
           <span>${filled}/5</span>
         </div>
         ${team.map((id,si)=>{
@@ -932,7 +942,7 @@ function renderTeams(){
     <section class="lane ${lane.cls}">
       <h3 class="laneTitle">${lane.name}</h3>
       <div class="laneTeams">
-        ${lane.teams.map((teamIndex,i) => teamCard(teamIndex, i + 1)).join("")}
+        ${lane.teams.map((teamIndex,i) => teamCard(teamIndex, i + 1, lane.name)).join("")}
       </div>
     </section>
   `).join("");
