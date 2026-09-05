@@ -1125,29 +1125,36 @@ function clearCurrent(){
 function autoFillCurrent(){
   if(!confirm(`Auto-fill empty slots in ${current === "main" ? "Main" : "Sub"} Battlefield? Existing assignments will stay.`)) return;
 
-  const used = new Set([...data.main.flat(), ...data.sub.flat()].filter(Boolean));
-  let available = data.members.filter(m => !used.has(m.id));
+  // SUB is automatic: everyone not in MAIN belongs there.
+  if(current === "sub") {
+    reconcileSubRoster();
+    save();
+    return;
+  }
+
+  // MAIN auto-fill must be allowed to pull members FROM SUB.
+  // Only members already in MAIN are considered unavailable.
+  const usedMain = new Set(data.main.flat().filter(Boolean));
+  let available = data.members.filter(m => !usedMain.has(m.id));
 
   // Highest GR first. Keep High Priests easy to place as one healer per team.
   available.sort((a,b) => b.gr - a.gr);
   const priests = available.filter(m => m.cls === "High Priest");
   const others = available.filter(m => m.cls !== "High Priest");
 
-  const field = data[current];
+  const field = data.main;
 
-  // First pass: add one High Priest to any non-empty team that has none, or to empty teams when possible.
+  // First pass: put one High Priest into each team that does not already have one.
   field.forEach(team => {
     const currentMembers = team.map(id => data.members.find(m => m.id === id)).filter(Boolean);
     const hasPriest = currentMembers.some(m => m.cls === "High Priest");
     if(!hasPriest && priests.length){
       const emptyIndex = team.findIndex(id => !id || !data.members.some(m => m.id === id));
-      if(emptyIndex !== -1){
-        team[emptyIndex] = priests.shift().id;
-      }
+      if(emptyIndex !== -1) team[emptyIndex] = priests.shift().id;
     }
   });
 
-  // Second pass: fill remaining empty slots by highest GR.
+  // Second pass: fill remaining MAIN slots by highest GR.
   const remaining = [...priests, ...others].sort((a,b) => b.gr - a.gr);
   field.forEach(team => {
     for(let i=0;i<team.length && remaining.length;i++){
@@ -1156,6 +1163,8 @@ function autoFillCurrent(){
     }
   });
 
+  // save() calls reconcileSubRoster(), which automatically removes
+  // newly selected MAIN members from SUB and repacks the rest.
   save();
 }
 
