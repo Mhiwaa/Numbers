@@ -502,34 +502,64 @@ return new Set([
 ].filter(Boolean));
 }
 
+function memberStatus(id){
+  for(let t = 0; t < data.main.length; t++){
+    if(data.main[t].includes(id)){
+      return `MAIN T${t + 1}`;
+    }
+  }
+
+  for(let t = 0; t < data.sub.length; t++){
+    if(data.sub[t].includes(id)){
+      return `SUB T${t + 1}`;
+    }
+  }
+
+  return "UNASSIGNED";
+}
+
 function renderMembers(){
-let used=usedIds();
+  let q = search.value.toLowerCase();
+  let f = filter.value;
+  let s = sort.value;
 
-let q=search.value.toLowerCase();
-let f=filter.value;
-let s=sort.value;
+  // Show ALL members, including assigned members
+  let arr = [...data.members];
 
-let arr=data.members.filter(x=>!used.has(x.id));
+  if(q) arr = arr.filter(x =>
+    x.name.toLowerCase().includes(q)
+  );
 
-if(q)arr=arr.filter(x=>x.name.toLowerCase().includes(q));
-if(f)arr=arr.filter(x=>x.cls===f);
+  if(f) arr = arr.filter(x =>
+    x.cls === f
+  );
 
-arr.sort((a,b)=>{
-if(s==="az")return a.name.localeCompare(b.name);
-return b.gr-a.gr;
-});
+  arr.sort((a,b)=>{
+    if(s === "az") return a.name.localeCompare(b.name);
+    return b.gr - a.gr;
+  });
 
-members.innerHTML=arr.map(m=>`
-<div class="member ${selected===m.id?'sel':''}" onclick="pick(${m.id})">
-<b>${m.name}</b><br>
-<small class="class-${m.cls.replaceAll(' ','-')}">${m.cls} • GR ${m.gr.toLocaleString()}</small>
-<div class="memberBtns">
-<button onclick="pick(${m.id})">Select</button>
-<button onclick="editMember(${m.id})">Edit</button>
-<button onclick="deleteMember(${m.id})">Delete</button>
-</div>
-</div>
-`).join("");
+  members.innerHTML = arr.map(m => {
+    const status = memberStatus(m.id);
+
+    return `
+      <div class="member ${selected===m.id?'sel':''}" onclick="pick(${m.id})">
+        <b>${m.name}</b><br>
+
+        <small class="class-${m.cls.replaceAll(' ','-')}">
+          ${m.cls} • GR ${m.gr.toLocaleString()}
+        </small>
+
+        <small>${status}</small>
+
+        <div class="memberBtns">
+          <button onclick="pick(${m.id})">Select</button>
+          <button onclick="editMember(${m.id})">Edit</button>
+          <button onclick="deleteMember(${m.id})">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 function renderTeams(){
