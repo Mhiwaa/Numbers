@@ -535,8 +535,10 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
 
 <div class="statsBar" id="statsBar">
   <div class="statCard"><span class="statValue" id="statMembers">0</span><span class="statLabel">Members</span></div>
-  <div class="statCard"><span class="statValue" id="statAssigned">0/60</span><span class="statLabel">Assigned</span></div>
-  <div class="statCard"><span class="statValue" id="statFullTeams">0/12</span><span class="statLabel">Full Teams</span></div>
+  <div class="statCard"><span class="statValue" id="statMain">0/60</span><span class="statLabel">Main</span></div>
+  <div class="statCard"><span class="statValue" id="statSub">0</span><span class="statLabel">Sub</span></div>
+  <div class="statCard"><span class="statValue" id="statUnassigned">0</span><span class="statLabel">Unassigned</span></div>
+  <div class="statCard"><span class="statValue" id="statFullTeams">0</span><span class="statLabel">Full Teams</span></div>
   <div class="statCard" id="statNoHealerCard"><span class="statValue" id="statNoHealer">0</span><span class="statLabel">No Healer</span></div>
 </div>
 
@@ -649,6 +651,7 @@ async function syncRosterFromSheet(showMessage=false){
       });
 
     data.members = newMembers;
+    reconcileSubRoster();
     localStorage.setItem("gcc", JSON.stringify(data));
     render();
     if(status) status.textContent = `Google Sheet synced • ${newMembers.length} members`;
@@ -662,7 +665,52 @@ async function syncRosterFromSheet(showMessage=false){
   }
 }
 
+function reconcileSubRoster(){
+  // MAIN is fixed at 12 x 5. Everyone else belongs in SUB.
+  if(!Array.isArray(data.main)) data.main = [];
+  while(data.main.length < 12) data.main.push(Array(5).fill(null));
+  data.main = data.main.slice(0,12).map(team => Array.from({length:5},(_,i) => team?.[i] ?? null));
+
+  const validIds = new Set(data.members.map(m => m.id));
+  const mainIds = new Set(data.main.flat().filter(id => id && validIds.has(id)));
+  const subEligible = data.members.filter(m => !mainIds.has(m.id));
+  const eligibleIds = new Set(subEligible.map(m => m.id));
+
+  // Keep existing SUB positions when possible, remove invalid/Main/duplicate entries.
+  const seen = new Set();
+  const kept = [];
+  (Array.isArray(data.sub) ? data.sub : []).forEach(team => {
+    const clean = Array(5).fill(null);
+    for(let i=0;i<5;i++){
+      const id = team?.[i];
+      if(id && eligibleIds.has(id) && !seen.has(id)){
+        clean[i] = id;
+        seen.add(id);
+      }
+    }
+    kept.push(clean);
+  });
+
+  // Every member not in MAIN is automatically placed into SUB.
+  const missing = subEligible.filter(m => !seen.has(m.id)).sort((a,b) => b.gr - a.gr);
+  for(const m of missing){
+    let placed = false;
+    for(const team of kept){
+      const slot = team.indexOf(null);
+      if(slot !== -1){ team[slot] = m.id; placed = true; break; }
+    }
+    if(!placed) kept.push([m.id,null,null,null,null]);
+  }
+
+  const needed = Math.max(1, Math.ceil(subEligible.length / 5));
+  // Trim only completely empty teams beyond what's needed.
+  while(kept.length > needed && kept[kept.length-1].every(x => !x)) kept.pop();
+  while(kept.length < needed) kept.push(Array(5).fill(null));
+  data.sub = kept;
+}
+
 async function save(){
+  reconcileSubRoster();
   localStorage.setItem("gcc", JSON.stringify(data));
   render();
 
@@ -692,6 +740,7 @@ async function loadCloudData(){
 
   if(row && row.data){
     data = row.data;
+    reconcileSubRoster();
     localStorage.setItem("gcc", JSON.stringify(data));
     render();
     syncRosterFromSheet(false);
@@ -812,10 +861,11 @@ return new Set([
 ].filter(Boolean));
 }
 
-function teamLocation(teamIndex){
+function teamLocation(teamIndex, fieldName="main"){
+  const total = fieldName === "sub" ? data.sub.length : 12;
   if(teamIndex <= 2) return { lane: "TOP", number: teamIndex + 1 };
-  if(teamIndex <= 8) return { lane: "MID", number: teamIndex - 2 };
-  return { lane: "BOTTOM", number: teamIndex - 8 };
+  if(teamIndex >= total - 3) return { lane: "BOTTOM", number: teamIndex - (total - 3) + 1 };
+  return { lane: "MID", number: teamIndex - 2 };
 }
 
 function memberStatus(id){
@@ -828,7 +878,7 @@ function memberStatus(id){
 
   for(let t = 0; t < data.sub.length; t++){
     if(data.sub[t].includes(id)){
-      const loc = teamLocation(t);
+      const loc = teamLocation(t, "sub");
       return `SUB • ${loc.lane} T${loc.number}`;
     }
   }
@@ -900,11 +950,16 @@ function renderMembers(){
 function renderTeams(){
   let field = data[current];
 
+  const totalTeams = field.length;
+  const topTeams = Array.from({length: Math.min(3,totalTeams)}, (_,i) => i);
+  const bottomStart = Math.max(3, totalTeams - 3);
+  const midTeams = Array.from({length: Math.max(0,bottomStart - 3)}, (_,i) => i + 3);
+  const bottomTeams = Array.from({length: Math.max(0,totalTeams - bottomStart)}, (_,i) => i + bottomStart);
   const laneConfig = [
-    { name: "TOP", cls: "top", teams: [0,1,2] },
-    { name: "MID", cls: "mid", teams: [3,4,5,6,7,8] },
-    { name: "BOTTOM", cls: "bottom", teams: [9,10,11] }
-  ];
+    { name: "TOP", cls: "top", teams: topTeams },
+    { name: "MID", cls: "mid", teams: midTeams },
+    { name: "BOTTOM", cls: "bottom", teams: bottomTeams }
+  ].filter(lane => lane.teams.length);
 
   function teamCard(teamIndex, laneTeamNumber, laneName){
     const team = field[teamIndex];
@@ -952,30 +1007,42 @@ function renderStats(){
   const field = data[current];
   const validMemberIds = new Set(data.members.map(m => m.id));
 
-  let assigned = 0;
+  // Count UNIQUE valid members in Main/Sub. Old or duplicate slot IDs do not inflate totals.
+  const mainIds = new Set(
+    data.main.flat().filter(id => id && validMemberIds.has(id))
+  );
+  const subIds = new Set(
+    data.sub.flat().filter(id => id && validMemberIds.has(id))
+  );
+  const assignedAnywhere = new Set([...mainIds, ...subIds]);
+  const unassigned = Math.max(0, data.members.length - assignedAnywhere.size);
+
   let fullTeams = 0;
   let noHealer = 0;
 
   field.forEach(team => {
-    const membersInTeam = team
+    const membersInTeam = [...new Set(team)]
       .filter(id => id && validMemberIds.has(id))
       .map(id => data.members.find(m => m.id === id))
       .filter(Boolean);
 
-    assigned += membersInTeam.length;
     if(membersInTeam.length === 5) fullTeams++;
     if(membersInTeam.length > 0 && !membersInTeam.some(m => m.cls === "High Priest")) noHealer++;
   });
 
   const statMembers = document.getElementById("statMembers");
-  const statAssigned = document.getElementById("statAssigned");
+  const statMain = document.getElementById("statMain");
+  const statSub = document.getElementById("statSub");
+  const statUnassigned = document.getElementById("statUnassigned");
   const statFullTeams = document.getElementById("statFullTeams");
   const statNoHealer = document.getElementById("statNoHealer");
   const noHealerCard = document.getElementById("statNoHealerCard");
 
   if(statMembers) statMembers.textContent = data.members.length;
-  if(statAssigned) statAssigned.textContent = `${assigned}/60`;
-  if(statFullTeams) statFullTeams.textContent = `${fullTeams}/12`;
+  if(statMain) statMain.textContent = `${mainIds.size}/60`;
+  if(statSub) statSub.textContent = `${subIds.size}`;
+  if(statUnassigned) statUnassigned.textContent = unassigned;
+  if(statFullTeams) statFullTeams.textContent = `${fullTeams}/${field.length}`;
   if(statNoHealer) statNoHealer.textContent = noHealer;
   if(noHealerCard) noHealerCard.classList.toggle("warning", noHealer > 0);
 }
@@ -1045,9 +1112,14 @@ render();
 }
 
 function clearCurrent(){
-if(!confirm("Clear all teams in this battlefield?"))return;
-data[current]=Array.from({length:12},()=>Array(5).fill(null));
-save();
+  if(!confirm("Reset all teams in this battlefield?")) return;
+  if(current === "main"){
+    data.main = Array.from({length:12},()=>Array(5).fill(null));
+  } else {
+    // SUB always contains everyone who is not in MAIN; reset means repack them.
+    data.sub = [];
+  }
+  save();
 }
 
 function autoFillCurrent(){
@@ -1116,6 +1188,7 @@ function closeMemberPool(){
 }
 
 // Show cached/local data immediately so the page feels instant.
+reconcileSubRoster();
 render();
 
 async function startCloudSync(){
@@ -1142,7 +1215,8 @@ async function startCloudSync(){
           // Avoid an unnecessary full re-render when nothing changed.
           if (incoming !== currentData) {
             data = payload.new.data;
-            localStorage.setItem("gcc", incoming);
+            reconcileSubRoster();
+            localStorage.setItem("gcc", JSON.stringify(data));
             render();
             syncRosterFromSheet(false);
           }
