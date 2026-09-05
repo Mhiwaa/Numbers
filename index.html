@@ -179,6 +179,36 @@ button:hover{background:#243247;}
   font-weight:bold;
 }
 
+
+.actionBar{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin:0 0 10px;
+}
+.actionBar button{padding:7px 10px;font-size:11px;}
+.actionBar .danger{border-color:#71343d;color:#ff9aa6;}
+.actionBar .accent{background:#2b3d57;}
+
+.team.healerMissing{border-color:#7a3f49;box-shadow:0 0 0 1px rgba(255,118,118,.12) inset;}
+.healerBadge{font-size:9px;color:#ff9aa6;font-weight:700;margin-left:6px;}
+.teamMeta{display:flex;align-items:center;gap:6px;}
+
+body.poolHiddenDesktop .wrap{grid-template-columns:minmax(0,1fr);}
+body.poolHiddenDesktop #rosterPanel{display:none;}
+body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
+
+@media print{
+  body{background:#fff;color:#000;}
+  header,#rosterPanel,.memberPoolBtn,.drawerBackdrop,.tabs,.statsBar,.actionBar,#loginBox{display:none!important;}
+  .wrap{display:block!important;max-width:none!important;padding:0!important;}
+  .panel{border:0!important;background:#fff!important;padding:0!important;}
+  .battlefieldScroll{overflow:visible!important;}
+  .teams{min-width:0!important;grid-template-columns:1fr 2fr 1fr!important;gap:8px!important;}
+  .team,.slot{background:#fff!important;color:#000!important;border-color:#999!important;break-inside:avoid;}
+  .slot .removeMini,.slotEmpty{display:none!important;}
+  .laneTitle{color:#000!important;}
+}
 .statsBar{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -516,11 +546,17 @@ button:hover{background:#243247;}
 <button onclick="clearCurrent()">Clear Current</button>
 </div>
 
+<div class="actionBar">
+  <button class="accent" onclick="autoFillCurrent()">⚡ Auto-fill Empty</button>
+  <button onclick="printOrShare()">🖨 Print/Share</button>
+  <button onclick="toggleDesktopPool()">☰ Hide/Show Pool</button>
+</div>
+
 <div class="statsBar" id="statsBar">
   <div class="statCard"><span class="statValue" id="statMembers">0</span><span class="statLabel">Members</span></div>
   <div class="statCard"><span class="statValue" id="statAssigned">0/60</span><span class="statLabel">Assigned</span></div>
   <div class="statCard"><span class="statValue" id="statFullTeams">0/12</span><span class="statLabel">Full Teams</span></div>
-  <div class="statCard warning" id="statNoHealerCard"><span class="statValue" id="statNoHealer">0</span><span class="statLabel">No Healer</span></div>
+  <div class="statCard" id="statNoHealerCard"><span class="statValue" id="statNoHealer">0</span><span class="statLabel">Teams Without Healer</span></div>
 </div>
 
 <div id="loginBox" class="panel">
@@ -542,6 +578,11 @@ const SUPABASE_URL = "https://wgiibguqueuwetrmxixa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_UJR0HaAeyOmv0-lL5yFMYg_iXyH3BCN";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+supabaseClient.auth.getSession().then(({data:{session}})=>{
+  const el=document.getElementById("loginStatus");
+  if(el) el.textContent=session ? "Logged in" : "Not logged in";
+});
 async function officerLogin(){
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value;
@@ -817,12 +858,14 @@ function renderTeams(){
 
   function teamCard(teamIndex, laneTeamNumber){
     const team = field[teamIndex];
-    const filled = team.filter(id => data.members.some(m => m.id === id)).length;
+    const teamMembers = team.map(id => data.members.find(m => m.id === id)).filter(Boolean);
+    const filled = teamMembers.length;
+    const missingHealer = filled > 0 && !teamMembers.some(m => m.cls === "High Priest");
 
     return `
-      <div class="team">
+      <div class="team ${missingHealer ? 'healerMissing' : ''}">
         <div class="teamHeader">
-          <b>Team ${laneTeamNumber}</b>
+          <b>Team ${laneTeamNumber}${missingHealer ? '<span class="healerBadge">⚠ NO HP</span>' : ''}</b>
           <span>${filled}/5</span>
         </div>
         ${team.map((id,si)=>{
@@ -953,6 +996,63 @@ function clearCurrent(){
 if(!confirm("Clear all teams in this battlefield?"))return;
 data[current]=Array.from({length:12},()=>Array(5).fill(null));
 save();
+}
+
+function autoFillCurrent(){
+  if(!confirm(`Auto-fill empty slots in ${current === "main" ? "Main" : "Sub"} Battlefield? Existing assignments will stay.`)) return;
+
+  const used = new Set([...data.main.flat(), ...data.sub.flat()].filter(Boolean));
+  let available = data.members.filter(m => !used.has(m.id));
+
+  // Highest GR first. Keep High Priests easy to place as one healer per team.
+  available.sort((a,b) => b.gr - a.gr);
+  const priests = available.filter(m => m.cls === "High Priest");
+  const others = available.filter(m => m.cls !== "High Priest");
+
+  const field = data[current];
+
+  // First pass: add one High Priest to any non-empty team that has none, or to empty teams when possible.
+  field.forEach(team => {
+    const currentMembers = team.map(id => data.members.find(m => m.id === id)).filter(Boolean);
+    const hasPriest = currentMembers.some(m => m.cls === "High Priest");
+    if(!hasPriest && priests.length){
+      const emptyIndex = team.findIndex(id => !id || !data.members.some(m => m.id === id));
+      if(emptyIndex !== -1){
+        team[emptyIndex] = priests.shift().id;
+      }
+    }
+  });
+
+  // Second pass: fill remaining empty slots by highest GR.
+  const remaining = [...priests, ...others].sort((a,b) => b.gr - a.gr);
+  field.forEach(team => {
+    for(let i=0;i<team.length && remaining.length;i++){
+      const valid = team[i] && data.members.some(m => m.id === team[i]);
+      if(!valid) team[i] = remaining.shift().id;
+    }
+  });
+
+  save();
+}
+
+function printOrShare(){
+  if(navigator.share){
+    navigator.share({
+      title:"Guild Command Center",
+      text:`${current === "main" ? "Main" : "Sub"} Battlefield lineup`,
+      url:location.href
+    }).catch(()=>{});
+  }else{
+    window.print();
+  }
+}
+
+function toggleDesktopPool(){
+  if(window.innerWidth <= 700){
+    toggleMemberPool();
+    return;
+  }
+  document.body.classList.toggle("poolHiddenDesktop");
 }
 
 function toggleMemberPool(){
