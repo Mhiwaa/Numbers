@@ -665,7 +665,18 @@ function assign(t,s){
   const existingId = data[current][t][s];
   const existingMember = data.members.find(m => m.id === existingId);
 
+  // Do not overwrite a valid occupied slot.
   if(existingId && existingMember)return;
+
+  // A member can only occupy one slot across Main and Sub.
+  // Selecting an assigned member and choosing a new empty slot moves them.
+  ["main","sub"].forEach(field => {
+    data[field].forEach(team => {
+      team.forEach((id,i) => {
+        if(id === selected) team[i] = null;
+      });
+    });
+  });
 
   data[current][t][s]=selected;
   selected=null;
