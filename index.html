@@ -563,6 +563,22 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
   .attendanceActions{justify-content:flex-start;}
 }
 
+
+.builderToolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 0 10px;
+}
+.builderToolbar .tabs,
+.builderToolbar .actionBar{margin:0;}
+.builderToolbar .actionBar{justify-content:flex-end;}
+@media(max-width:700px){
+  .builderToolbar{align-items:flex-start;flex-direction:column;gap:7px;}
+  .builderToolbar .tabs,.builderToolbar .actionBar{width:100%;}
+  .builderToolbar .actionBar{justify-content:flex-start;}
+}
 </style>
 </head>
 <body>
@@ -638,16 +654,17 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
 </div>
 
 <div id="teamBuilderView">
-<div class="tabs">
-<button id="mainBtn" class="active" onclick="showTab('main')">Main Battlefield</button>
-<button id="subBtn" onclick="showTab('sub')">Sub Battlefield</button>
-<button id="clearCurrentBtn" onclick="clearCurrent()">Clear Main</button>
-</div>
-
-<div class="actionBar">
-  <button class="accent" onclick="autoFillCurrent()">⚡ Auto-fill Empty</button>
-  <button onclick="printOrShare()">🖨 Print/Share</button>
-  <button onclick="toggleDesktopPool()">☰ Hide/Show List</button>
+<div class="builderToolbar">
+  <div class="tabs battlefieldTabs">
+    <button id="mainBtn" class="active" onclick="showTab('main')">Main Battlefield</button>
+    <button id="subBtn" onclick="showTab('sub')">Sub Battlefield</button>
+  </div>
+  <div class="actionBar">
+    <button class="accent" onclick="autoFillCurrent()">⚡ Auto-fill Empty</button>
+    <button onclick="printOrShare()">🖨 Print/Share</button>
+    <button onclick="toggleDesktopPool()">☰ Hide/Show List</button>
+    <button id="clearCurrentBtn" class="danger" onclick="clearCurrent()">Clear Main</button>
+  </div>
 </div>
 
 <div class="statsBar" id="statsBar">
