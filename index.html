@@ -4,9 +4,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Guild Command Center</title>
 <style>
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box;}
 
 body{
   margin:0;
@@ -15,23 +13,27 @@ body{
   color:#f5f7fb;
 }
 
+body.memberPoolOpen{overflow:hidden;}
+
 header{
   padding:14px 18px;
   background:#101722;
   border-bottom:1px solid #273244;
   position:sticky;
   top:0;
-  z-index:10;
+  z-index:20;
 }
 
-h2,h3{
-  margin:8px 0;
-}
+h2,h3{margin:8px 0;}
 
 .wrap{
   padding:12px;
   max-width:1500px;
   margin:auto;
+  display:grid;
+  grid-template-columns:340px minmax(0,1fr);
+  gap:12px;
+  align-items:start;
 }
 
 .panel{
@@ -42,6 +44,28 @@ h2,h3{
   margin-bottom:12px;
 }
 
+#rosterPanel{
+  position:sticky;
+  top:82px;
+  max-height:calc(100vh - 96px);
+  display:flex;
+  flex-direction:column;
+  margin-bottom:0;
+}
+
+.rosterHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.closeRosterBtn,
+.memberPoolBtn,
+.drawerBackdrop{
+  display:none;
+}
+
 .controls{
   display:flex;
   flex-wrap:wrap;
@@ -49,9 +73,18 @@ h2,h3{
   align-items:center;
 }
 
-input,
-select,
-button{
+.bulkUpdate{
+  display:flex;
+  gap:7px;
+  align-items:stretch;
+  margin:7px 0;
+}
+
+.bulkUpdate textarea{
+  flex:1;
+  min-width:0;
+  min-height:62px;
+  resize:vertical;
   background:#1a2330;
   color:#f5f7fb;
   border:1px solid #334155;
@@ -59,25 +92,27 @@ button{
   padding:9px 11px;
 }
 
-input::placeholder{
-  color:#718096;
+input,select,button{
+  background:#1a2330;
+  color:#f5f7fb;
+  border:1px solid #334155;
+  border-radius:8px;
+  padding:9px 11px;
 }
 
-button{
-  cursor:pointer;
-}
-
-button:hover{
-  background:#243247;
-}
+input::placeholder,.bulkUpdate textarea::placeholder{color:#718096;}
+button{cursor:pointer;}
+button:hover{background:#243247;}
 
 #members{
   display:flex;
   flex-direction:column;
   gap:4px;
-  max-height:330px;
+  max-height:calc(100vh - 390px);
+  min-height:180px;
   overflow-y:auto;
   padding:6px 2px;
+  margin-top:4px;
 }
 
 .member{
@@ -86,9 +121,9 @@ button:hover{
   background:#182230;
   border:1px solid #2d3b50;
   border-radius:7px;
-  padding:6px 8px;
+  padding:7px 8px;
   display:grid;
-  grid-template-columns:1fr auto;
+  grid-template-columns:minmax(0,1fr) auto;
   align-items:center;
   gap:6px;
 }
@@ -98,9 +133,7 @@ button:hover{
   background:#172b42;
 }
 
-.member small{
-  color:#9aa7b8;
-}
+.member small{color:#9aa7b8;}
 .class-Lord-Knight{color:#ff7676!important;}
 .class-Paladin{color:#ffd166!important;}
 .class-High-Wizard{color:#70a1ff!important;}
@@ -111,16 +144,10 @@ button:hover{
 .class-Nightwatch{color:#74b9ff!important;}
 .class-Alithea{color:#55efc4!important;}
 .class-Champion{color:#ffb86c!important;}
-.memberBtns{
-  display:flex;
-  gap:3px;
-  margin-top:0;
-}
 
-.memberBtns button{
-  padding:5px 8px;
-  font-size:11px;
-}
+.memberBtns{display:flex;gap:3px;margin-top:0;}
+.memberBtns button{padding:5px 8px;font-size:11px;}
+
 .memberStatus{
   display:inline-block;
   margin-top:4px;
@@ -129,28 +156,16 @@ button:hover{
   font-size:10px;
   font-weight:bold;
 }
+.statusMain{background:#1e4f80;color:#8ecbff;}
+.statusSub{background:#4a3275;color:#d2b6ff;}
+.statusNone{background:#303846;color:#aab4c3;}
 
-.statusMain{
-  background:#1e4f80;
-  color:#8ecbff;
-}
-
-.statusSub{
-  background:#4a3275;
-  color:#d2b6ff;
-}
-
-.statusNone{
-  background:#303846;
-  color:#aab4c3;
-}
 .tabs{
   display:flex;
   gap:7px;
   flex-wrap:wrap;
   margin-bottom:10px;
 }
-
 .tabs button.active{
   background:#4da3ff;
   color:#07111f;
@@ -163,14 +178,12 @@ button:hover{
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:10px;
 }
-
 .team{
   background:#101722;
   border:1px solid #2b3748;
   border-radius:12px;
   padding:9px;
 }
-
 .teamHeader{
   display:flex;
   justify-content:space-between;
@@ -178,13 +191,7 @@ button:hover{
   padding:2px 3px 8px;
   font-size:14px;
 }
-
-.teamHeader span{
-  color:#65d68a;
-  font-size:12px;
-  font-weight:bold;
-}
-
+.teamHeader span{color:#65d68a;font-size:12px;font-weight:bold;}
 .slot{
   background:#182230;
   border:1px solid #2c394c;
@@ -193,91 +200,116 @@ button:hover{
   margin:3px 0;
   padding:5px 7px;
 }
-
-.slot b{
-  font-size:13px;
-}
-
-.slot small{
-  color:#9aa7b8;
-  font-size:11px;
-}
-
-.slot button{
-  padding:5px 7px;
-  font-size:11px;
-  margin-top:4px;
-}
+.slot b{font-size:13px;}
+.slot small{color:#9aa7b8;font-size:11px;}
+.slot button{padding:5px 7px;font-size:11px;margin-top:4px;}
 
 @media(max-width:700px){
-  header{
-    padding:10px 12px;
-  }
-
-  header h2{
-    font-size:18px;
-  }
+  header{padding:10px 12px;}
+  header h2{font-size:18px;}
 
   .wrap{
-  padding:8px;
-  display:block;
-}
-.memberPoolBtn{
-  display:block;
-  margin-bottom:8px;
-}
-
-#rosterPanel{
-  position:fixed;
-  top:0;
-  left:0;
-  width:88%;
-  max-width:360px;
-  height:100vh;
-  overflow-y:auto;
-  z-index:1000;
-  transform:translateX(-105%);
-  transition:transform .2s ease;
-  border-radius:0 12px 12px 0;
-}
-
-body.memberPoolOpen #rosterPanel{
-  transform:translateX(0);
-}
-
-body.memberPoolOpen .memberPoolBtn{
-  position:fixed;
-  top:10px;
-  right:10px;
-  z-index:1100;
-}
-  .panel{
-    padding:9px;
+    padding:8px;
+    display:block;
   }
 
-  .teams{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:6px;
+  .memberPoolBtn{
+    display:inline-block;
+    margin-bottom:8px;
   }
 
-  .team{
-    padding:6px;
+  .drawerBackdrop{
+    display:block;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.58);
+    z-index:999;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
   }
 
-  .teamHeader{
-    font-size:12px;
+  body.memberPoolOpen .drawerBackdrop{
+    opacity:1;
+    pointer-events:auto;
   }
 
-  .slot{
-    min-height:48px;
-    padding:7px;
+  #rosterPanel{
+    position:fixed;
+    top:0;
+    left:0;
+    width:min(84vw,340px);
+    height:100dvh;
+    max-height:none;
+    margin:0;
+    padding:12px;
+    overflow:hidden;
+    z-index:1000;
+    transform:translateX(-105%);
+    transition:transform .22s ease;
+    border-radius:0 14px 14px 0;
+    box-shadow:12px 0 30px rgba(0,0,0,.35);
   }
 
-  .controls input,
-  .controls select{
+  body.memberPoolOpen #rosterPanel{transform:translateX(0);}
+
+  .closeRosterBtn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:36px;
+    height:36px;
+    padding:0;
+    font-size:18px;
+    flex:0 0 auto;
+  }
+
+  #rosterPanel .controls input,
+  #rosterPanel .controls select{
+    flex:1 1 calc(50% - 7px);
     min-width:0;
-    max-width:47%;
+    max-width:none;
   }
+
+  #rosterPanel .controls button{
+    flex:0 0 auto;
+  }
+
+  #rosterPanel .bulkUpdate{
+    flex-direction:column;
+  }
+
+  #rosterPanel .bulkUpdate textarea{
+    width:100%;
+    min-height:54px;
+  }
+
+  #members{
+    flex:1;
+    min-height:0;
+    max-height:none;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+
+  .member{
+    grid-template-columns:minmax(0,1fr) auto;
+  }
+
+  .memberBtns button{
+    padding:5px 7px;
+    font-size:10px;
+  }
+
+  .panel{padding:9px;}
+  .teams{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+  .team{padding:6px;}
+  .teamHeader{font-size:12px;}
+  .slot{min-height:48px;padding:7px;}
+}
+
+@media(max-width:420px){
+  .teams{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -289,8 +321,12 @@ body.memberPoolOpen .memberPoolBtn{
 
 <div class="wrap">
 <button class="memberPoolBtn" onclick="toggleMemberPool()">☰ Member Pool</button>
+<div class="drawerBackdrop" onclick="closeMemberPool()"></div>
 <div class="panel" id="rosterPanel">
-<h3>Roster</h3>
+<div class="rosterHeader">
+  <h3>Roster</h3>
+  <button class="closeRosterBtn" onclick="closeMemberPool()" aria-label="Close Member Pool">✕</button>
+</div>
 
 <div class="controls">
 <input id="name" placeholder="IGN">
@@ -357,9 +393,8 @@ body.memberPoolOpen .memberPoolBtn{
 </div>
 
 <div class="teams" id="teams"></div>
-
-
-
+</div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -655,8 +690,9 @@ renderTeams();
 }
 
 function pick(id){
-selected=id;
-render();
+  selected=id;
+  render();
+  if(window.innerWidth<=700) closeMemberPool();
 }
 
 function assign(t,s){
@@ -664,17 +700,13 @@ function assign(t,s){
 
   const existingId = data[current][t][s];
   const existingMember = data.members.find(m => m.id === existingId);
-
-  // Do not overwrite a valid occupied slot.
   if(existingId && existingMember)return;
 
-  // A member can only occupy one slot across Main and Sub.
-  // Selecting an assigned member and choosing a new empty slot moves them.
   ["main","sub"].forEach(field => {
     data[field].forEach(team => {
-      team.forEach((id,i) => {
-        if(id === selected) team[i] = null;
-      });
+      for(let i=0;i<team.length;i++){
+        if(team[i]===selected) team[i]=null;
+      }
     });
   });
 
@@ -704,6 +736,10 @@ save();
 
 function toggleMemberPool(){
   document.body.classList.toggle("memberPoolOpen");
+}
+
+function closeMemberPool(){
+  document.body.classList.remove("memberPoolOpen");
 }
 
 render();
