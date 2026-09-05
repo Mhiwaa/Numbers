@@ -227,7 +227,7 @@ button:hover{
   margin-bottom:8px;
 }
 
-.wrap > .panel:first-of-type{
+#rosterPanel{
   position:fixed;
   top:0;
   left:0;
@@ -241,7 +241,7 @@ button:hover{
   border-radius:0 12px 12px 0;
 }
 
-body.memberPoolOpen .wrap > .panel:first-of-type{
+body.memberPoolOpen #rosterPanel{
   transform:translateX(0);
 }
 
@@ -289,7 +289,7 @@ body.memberPoolOpen .memberPoolBtn{
 
 <div class="wrap">
 <button class="memberPoolBtn" onclick="toggleMemberPool()">☰ Member Pool</button>
-<div class="panel">
+<div class="panel" id="rosterPanel">
 <h3>Roster</h3>
 
 <div class="controls">
