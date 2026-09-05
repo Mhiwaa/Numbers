@@ -322,6 +322,7 @@ body.poolHiddenDesktop .memberPoolBtn{display:inline-block;}
 }
 .slotClass{font-size:11px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .slotName{font-size:12px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slotGr{font-size:10px;opacity:.72;white-space:nowrap;margin-left:auto;}
 .slotEmpty{grid-column:1 / -1;width:100%;text-align:left;}
 .slot .removeMini{padding:3px 5px;margin:0;font-size:10px;}
 
@@ -1056,6 +1057,7 @@ function renderTeams(){
               ${m ? `
                 <span class="slotClass class-${m.cls.replaceAll(' ','-')}">${m.cls}</span>
                 <span class="slotName">${m.name}</span>
+                <span class="slotGr">${Number(m.gr||0).toLocaleString()} GR</span>
                 <button class="removeMini" onclick="removeSlot(event,${teamIndex},${si})">✕</button>
               ` : `
                 <button class="slotEmpty" onclick="assign(${teamIndex},${si})">＋ Empty slot</button>
