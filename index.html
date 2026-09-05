@@ -346,6 +346,26 @@ save();
 
 render();
 loadCloudData();
+
+supabaseClient
+  .channel("guild-data-sync")
+  .on(
+    "postgres_changes",
+    {
+      event: "UPDATE",
+      schema: "public",
+      table: "guild_data",
+      filter: "id=eq.1"
+    },
+    payload => {
+      if (payload.new && payload.new.data) {
+        data = payload.new.data;
+        localStorage.setItem("gcc", JSON.stringify(data));
+        render();
+      }
+    }
+  )
+  .subscribe();
 </script>
 </body>
 </html>
