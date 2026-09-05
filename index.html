@@ -417,7 +417,56 @@ function saveMember(){
   grInput.value = "";
   save();
 }
+function bulkUpdateRoster(){
+  const text = document.getElementById("rosterPaste").value.trim();
 
+  if(!text){
+    alert("Paste your roster first.");
+    return;
+  }
+
+  const rows = text.split(/\r?\n/);
+  let updated = 0;
+  let added = 0;
+
+  rows.forEach(row => {
+    const cols = row.split("\t");
+
+    if(cols.length < 3) return;
+
+    const cls = cols[0].trim();
+    const name = cols[1].trim();
+    const gr = Number(cols[2].replace(/,/g, "").trim());
+
+    if(!name || !cls || isNaN(gr)) return;
+
+    // Skip header row
+    if(name.toLowerCase() === "ign") return;
+
+    const existing = data.members.find(
+      m => m.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if(existing){
+      existing.cls = cls;
+      existing.gr = gr;
+      updated++;
+    }else{
+      data.members.push({
+        id: Date.now() + Math.random(),
+        name: name,
+        cls: cls,
+        gr: gr
+      });
+      added++;
+    }
+  });
+
+  document.getElementById("rosterPaste").value = "";
+  save();
+
+  alert(`Roster updated!\n${updated} updated\n${added} new members added`);
+  }
 function editMember(id){
   let m = data.members.find(x => x.id === id);
 
