@@ -121,7 +121,29 @@ button:hover{
   padding:5px 8px;
   font-size:11px;
 }
+.memberStatus{
+  display:inline-block;
+  margin-top:4px;
+  padding:2px 6px;
+  border-radius:10px;
+  font-size:10px;
+  font-weight:bold;
+}
 
+.statusMain{
+  background:#1e4f80;
+  color:#8ecbff;
+}
+
+.statusSub{
+  background:#4a3275;
+  color:#d2b6ff;
+}
+
+.statusNone{
+  background:#303846;
+  color:#aab4c3;
+}
 .tabs{
   display:flex;
   gap:7px;
@@ -550,7 +572,7 @@ function renderMembers(){
           ${m.cls} • GR ${m.gr.toLocaleString()}
         </small>
 
-        <small>${status}</small>
+        <span class="memberStatus ${status.startsWith('MAIN') ? 'statusMain' : status.startsWith('SUB') ? 'statusSub' : 'statusNone'}">${status}</span>
 
         <div class="memberBtns">
           <button onclick="pick(${m.id})">Select</button>
