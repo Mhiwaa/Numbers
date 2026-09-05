@@ -618,6 +618,9 @@ body.attendanceMode #rosterPanel,body.attendanceMode .memberPoolBtn,body.attenda
     <input id="attendanceDate" type="date" onchange="renderAttendance()">
     <button onclick="changeAttendanceDate(7)">Next →</button>
     <input id="attendanceSearch" placeholder="Search member" oninput="renderAttendance()">
+    <select id="attendanceClass" onchange="renderAttendance()">
+      <option value="all">All Classes</option>
+    </select>
     <button class="accent" onclick="markAllAttendance('present')">✓ Mark All Present</button>
     <button onclick="markAllAttendance('absent')">✕ Mark All Absent</button>
     <button onclick="clearAttendanceDate()">Clear This Date</button>
@@ -1252,6 +1255,14 @@ function renderAttendance(){
   const date = getAttendanceDate();
   const rec = (data.attendance && data.attendance[date]) || {};
   const q = (document.getElementById("attendanceSearch")?.value || "").trim().toLowerCase();
+  const classSelect = document.getElementById("attendanceClass");
+  if(classSelect){
+    const currentValue = classSelect.value || "all";
+    const classes = [...new Set(data.members.map(m => m.cls).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    classSelect.innerHTML = `<option value="all">All Classes</option>` + classes.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    classSelect.value = classes.includes(currentValue) ? currentValue : "all";
+  }
+  const selectedClass = classSelect?.value || "all";
   const history = attendanceHistoryStats();
 
   let present=0, absent=0;
@@ -1269,8 +1280,9 @@ function renderAttendance(){
   document.getElementById("attPerfect").textContent = history.perfect;
 
   const rows = [...data.members]
+    .filter(m => selectedClass === "all" || m.cls === selectedClass)
     .filter(m => !q || m.name.toLowerCase().includes(q) || m.cls.toLowerCase().includes(q))
-    .sort((a,b) => a.name.localeCompare(b.name));
+    .sort((a,b) => a.cls.localeCompare(b.cls) || a.name.localeCompare(b.name));
 
   list.innerHTML = rows.map(m => {
     const status = rec[String(m.id)] || "unmarked";
