@@ -1577,7 +1577,7 @@ function renderTeams(){
                   ${isOfficer ? `<button class="removeMini" onclick="removeSlot(event,${teamIndex},${si})">✕</button>` : ''}
                 </div>
               ` : `
-                ${isOfficer ? `<button class="slotEmpty" onclick="assign(${teamIndex},${si})">＋ Empty slot</button>` : `<span class="slotEmpty" style="display:block;opacity:.45">Empty slot</span>`}
+                ${isOfficer ? `<button class="slotEmpty" onclick="openSlotPicker(${teamIndex},${si})">＋ Empty slot</button>` : `<span class="slotEmpty" style="display:block;opacity:.45">Empty slot</span>`}
               `}
             </div>
           `;
@@ -1855,6 +1855,61 @@ function pick(id){
   if(window.innerWidth<=700) closeMemberPool();
 }
 
+function openSlotPicker(t,s){
+  if(!requireOfficer()) return;
+
+  const mainIds = new Set(data.main.flat().filter(Boolean));
+  const options = data.members
+    .filter(m => current === "main" || !mainIds.has(m.id))
+    .sort((a,b) => b.gr - a.gr);
+
+  const old = document.getElementById("slotPickerOverlay");
+  if(old) old.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "slotPickerOverlay";
+  overlay.style.cssText = "position:fixed;inset:0;background:rgba(2,5,15,.72);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px";
+  overlay.innerHTML = `
+    <div style="width:min(430px,100%);background:#0d1424;border:1px solid #df6fb0;border-radius:14px;padding:14px;box-shadow:0 0 28px rgba(223,111,176,.18)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <b>Choose member • Team ${t+1}</b>
+        <button id="slotPickerClose" style="padding:4px 9px">✕</button>
+      </div>
+      <input id="slotPickerSearch" placeholder="Type member name..." autocomplete="off" style="width:100%;box-sizing:border-box;margin-bottom:9px" />
+      <div id="slotPickerResults" style="max-height:330px;overflow:auto;display:grid;gap:6px"></div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const input = overlay.querySelector("#slotPickerSearch");
+  const results = overlay.querySelector("#slotPickerResults");
+  const close = () => overlay.remove();
+  overlay.querySelector("#slotPickerClose").onclick = close;
+  overlay.onclick = e => { if(e.target === overlay) close(); };
+
+  function draw(){
+    const q = input.value.trim().toLowerCase();
+    const shown = options.filter(m => !q || m.name.toLowerCase().includes(q) || m.cls.toLowerCase().includes(q)).slice(0,80);
+    results.innerHTML = shown.length ? shown.map(m => {
+      const st = memberStatus(m.id);
+      return `<button type="button" data-mid="${m.id}" style="text-align:left;padding:9px 10px;border-radius:9px">
+        <b>${escapeHtml(m.name)}</b> <span style="opacity:.7">• ${escapeHtml(m.cls)} • ${Number(m.gr||0).toLocaleString()} GR</span>
+        ${st ? `<span style="display:block;font-size:10px;opacity:.65;margin-top:2px">Currently: ${escapeHtml(st)}</span>` : ''}
+      </button>`;
+    }).join("") : `<div style="padding:12px;opacity:.65">No matching member.</div>`;
+    results.querySelectorAll("button[data-mid]").forEach(btn => btn.onclick = () => {
+      const raw = btn.dataset.mid;
+      const m = data.members.find(x => String(x.id) === raw);
+      if(!m) return;
+      selected = m.id;
+      assign(t,s);
+      close();
+    });
+  }
+  input.oninput = draw;
+  draw();
+  setTimeout(() => input.focus(), 0);
+}
+
 function assign(t,s){
   if(!requireOfficer()) return;
   if(!selected)return;
@@ -1945,10 +2000,25 @@ function autoFillCurrent(){
       .filter(m => !mainIds.has(m.id) && !usedSub.has(m.id))
       .sort((a,b) => b.gr - a.gr);
 
-    for(const m of availableSub){
+    const subPriests = availableSub.filter(m => m.cls === "High Priest");
+    const subOthers = availableSub.filter(m => m.cls !== "High Priest");
+
+    // First pass: give every existing Sub team ONE healer before any team gets a second healer.
+    data.sub.forEach(team => {
+      const currentMembers = team.map(id => data.members.find(m => m.id === id)).filter(Boolean);
+      const hasPriest = currentMembers.some(m => m.cls === "High Priest");
+      if(!hasPriest && subPriests.length){
+        const slot = team.findIndex(id => !id || !data.members.some(m => m.id === id));
+        if(slot !== -1) team[slot] = subPriests.shift().id;
+      }
+    });
+
+    // Then fill all remaining slots by GR. Extra healers are used only after the one-per-team pass.
+    const remainingSub = [...subPriests, ...subOthers].sort((a,b) => b.gr - a.gr);
+    for(const m of remainingSub){
       let placed = false;
       for(const team of data.sub){
-        const slot = team.indexOf(null);
+        const slot = team.findIndex(id => !id || !data.members.some(x => x.id === id));
         if(slot !== -1){ team[slot] = m.id; placed = true; break; }
       }
       if(!placed) data.sub.push([m.id,null,null,null,null]);
